@@ -1,0 +1,400 @@
+// Finsight — Core Data Model (Round 1: Core Tier)
+// After configuring DATABASE_URL in .env, run:
+//   npx prisma generate
+//   npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  totalIncome  Decimal  @default(0.00) @db.Decimal(14, 2)
+  totalExpense Decimal  @default(0.00) @db.Decimal(14, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions          Transaction[]
+  budgets               Budget[]
+  goals                 Goal[]
+  goalContributions       GoalContribution[]
+  holdings                PortfolioHolding[]
+  portfolioTransactions   PortfolioTransaction[]
+  allocationTargets       PortfolioAllocationTarget[]
+  realizedGains           RealizedGain[]
+  portfolioValueSnapshots PortfolioValueSnapshot[]
+  riskProfile             PortfolioRiskProfile?
+  categorizationRules     CategorizationRule[]
+  reviewQueueTransactions ReviewQueueTransaction[]
+
+  @@map("users")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+model Category {
+  id           Int             @id @default(autoincrement())
+  name         String          @unique
+  type                TransactionType
+  transactions        Transaction[]
+  budgets             Budget[]
+  categorizationRules CategorizationRule[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id                  Int             @id @default(autoincrement())
+  amount              Decimal         @db.Decimal(12, 2)
+  type                TransactionType
+  description         String?
+  transactionHash     String?         @unique
+  date                DateTime        @default(now())
+  createdAt           DateTime        @default(now())
+  sourceAccount       String?
+  destinationAccount  String?
+  linkedTransactionId Int?
+  linkedTransaction   Transaction?    @relation("TransferPair", fields: [linkedTransactionId], references: [id], onDelete: SetNull)
+  pairedTransactions  Transaction[]   @relation("TransferPair")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@index([userId, date])
+  @@index([linkedTransactionId])
+  @@map("transactions")
+}
+
+model Budget {
+  id              Int      @id @default(autoincrement())
+  monthlyLimit    Decimal  @db.Decimal(12, 2)
+  remainingAmount Decimal? @db.Decimal(12, 2)
+  month           Int
+  year            Int
+  createdAt       DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@unique([userId, categoryId, month, year])
+  @@map("budgets")
+}
+
+model Goal {
+  id              Int       @id @default(autoincrement())
+  title           String
+  targetAmount    Decimal   @db.Decimal(12, 2)
+  targetDate      DateTime?
+  isEmergencyFund Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+  contributions GoalContribution[]
+
+  @@map("goals")
+}
+
+// The source of truth for how much of a user's savings has been allocated
+// to a goal. A goal's saved/progress amount is always SUM(contributions),
+// never a manually-set field — see goal.service.ts. Deleting a goal cascades
+// to its contributions, which correctly frees that money back into the
+// user's unallocated available savings.
+model GoalContribution {
+  id        Int      @id @default(autoincrement())
+  amount    Decimal  @db.Decimal(12, 2)
+  date      DateTime @default(now())
+  note      String?
+  createdAt DateTime @default(now())
+
+  goal   Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goalId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId])
+  @@index([goalId])
+  @@map("goal_contributions")
+}
+
+enum HoldingType {
+  STOCK
+  MUTUAL_FUND
+  CRYPTO
+  GOLD
+  FIXED_DEPOSIT
+  BOND
+  OTHER
+}
+
+// Gold purity tiers. The @map values ("24K", "22K", "18K", "OTHER") are
+// stored verbatim in MySQL and match the symbol suffixes used in
+// MarketPriceCache (e.g. "XAU/INR/24K"). Application code must NOT
+// interpolate the TS enum name directly — use the GOLD_PURITY_TO_SYMBOL
+// lookup table in marketData.service.ts instead.
+enum GoldPurity {
+  PURITY_24K @map("24K")
+  PURITY_22K @map("22K")
+  PURITY_18K @map("18K")
+  OTHER
+}
+
+enum TransactionSide {
+  BUY
+  SELL
+}
+
+enum MarketDataStatus {
+  SUCCESS // fetched successfully within the current refresh cycle
+  STALE // a previous fetch succeeded, but the most recent attempt failed — last known price is still shown
+  UNAVAILABLE // no successful fetch has ever happened for this symbol
+}
+
+// A PortfolioHolding is the *asset shell* — what you own and how it's
+// priced — not an amount you type in. For STOCK/CRYPTO/MUTUAL_FUND/GOLD/BOND/OTHER,
+// invested amount, quantity, and average buy price are always derived from
+// its PortfolioTransaction rows (see portfolio.service.ts) — never stored
+// directly, for the same reason Goal.savedAmount was removed in favor of
+// GoalContribution. FIXED_DEPOSIT is the one exception: it has no market
+// price and no BUY/SELL transactions at all — it uses principal/interest/
+// maturity fields directly, since pretending an FD has a fluctuating price
+// would be dishonest.
+model PortfolioHolding {
+  id     Int         @id @default(autoincrement())
+  type   HoldingType
+  name   String
+  // Ticker/lookup key for market data (e.g. "RELIANCE:NSE", "BTC/USD").
+  // Required for STOCK/CRYPTO. Not used for MUTUAL_FUND/FIXED_DEPOSIT.
+  // For GOLD, the symbol is derived from purity by the application layer
+  // (e.g. "XAU/INR/24K") — never stored here.
+  symbol String?
+
+  // Gold purity tier — only meaningful when type === GOLD. Null for every
+  // other holding type. When set, drives the live INR-per-gram rate lookup
+  // from MarketPriceCache (symbol = "XAU/INR/<purity_db_value>").
+  purity GoldPurity?
+
+  // Sub-type classification (e.g. "PHYSICAL_GOLD", "DIGITAL_GOLD", "SGB", "GOLD_ETF", "ETF", "BOND")
+  subType String?
+
+  // Source of holding data: "MANUAL", "ZERODHA", "GROWW", "CAMS", "STATEMENT_IMPORT"
+  source String? @default("MANUAL")
+
+  // Optional user notes, institution name, or account details
+  notes String? @db.Text
+
+  // Directly reported current value from manual entry or statement upload
+  manualCurrentValue Decimal? @db.Decimal(14, 2)
+
+  // Deduplication identifier for statement imports
+  importHash String?
+
+  // Fallback price for MUTUAL_FUND, GOLD, and statement imports.
+  manualPrice Decimal? @db.Decimal(14, 4)
+
+  // Only used for FIXED_DEPOSIT.
+  principal      Decimal?  @db.Decimal(12, 2)
+  interestRate   Decimal?  @db.Decimal(5, 2) // annual %, e.g. 7.25
+  startDate      DateTime?
+  maturityDate   DateTime?
+  maturityAmount Decimal?  @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  transactions PortfolioTransaction[]
+  realizedGains RealizedGain[]
+
+  @@unique([userId, importHash])
+  @@map("portfolio_holdings")
+}
+
+// A single BUY or SELL event against a holding. Quantity is Decimal(18,6)
+// to support fractional crypto/mutual-fund units. A holding's remaining
+// quantity, average buy price, and invested amount are always computed by
+// summing these rows (weighted-average-cost method) — never stored.
+model PortfolioTransaction {
+  id         Int             @id @default(autoincrement())
+  side       TransactionSide
+  quantity   Decimal         @db.Decimal(18, 6)
+  price      Decimal         @db.Decimal(14, 4)
+  date       DateTime        @default(now())
+  importHash String?
+
+  createdAt DateTime @default(now())
+
+  holding   PortfolioHolding @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+  holdingId Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  realizedGain RealizedGain?
+
+  @@index([holdingId])
+  @@index([userId])
+  @@index([importHash])
+  @@unique([userId, importHash])
+  @@map("portfolio_transactions")
+}
+
+model PortfolioAllocationTarget {
+  id          Int         @id @default(autoincrement())
+  holdingType HoldingType
+  targetPct   Decimal     @db.Decimal(5, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@unique([userId, holdingType])
+  @@map("portfolio_allocation_targets")
+}
+
+model RealizedGain {
+  id           Int                  @id @default(autoincrement())
+  quantity     Decimal              @db.Decimal(18, 6)
+  salePrice    Decimal              @db.Decimal(14, 4)
+  avgCostBasis Decimal              @db.Decimal(14, 4)
+  realizedGain Decimal              @db.Decimal(14, 4)
+  date         DateTime             @default(now())
+  createdAt    DateTime             @default(now())
+
+  holding       PortfolioHolding     @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+  holdingId     Int
+  transaction   PortfolioTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId Int                  @unique
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+
+  @@index([userId, date])
+  @@index([holdingId])
+  @@map("realized_gains")
+}
+
+model PortfolioValueSnapshot {
+  id           Int      @id @default(autoincrement())
+  snapshotDate DateTime @db.Date
+  totalValue   Decimal  @db.Decimal(14, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@unique([userId, snapshotDate])
+  @@index([userId, snapshotDate])
+  @@map("portfolio_value_snapshots")
+}
+
+// Persistent, app-wide cache of the last known price per symbol — shared
+// across all users who hold that symbol, refreshed on a timer (see
+// marketData.service.ts), never fetched inline during a request. The
+// Portfolio module reads only this table; it never calls the external
+// market API directly, so an API outage degrades to "stale price shown"
+// rather than a broken Portfolio page.
+model MarketPriceCache {
+  id                  Int               @id @default(autoincrement())
+  symbol              String            @unique
+  assetType           HoldingType
+  // Nullable: a symbol that has never had a successful fetch has no price
+  // at all — we never store a placeholder like 0, which would be a fake
+  // price masquerading as real data.
+  price               Decimal?          @db.Decimal(14, 4)
+  previousPrice       Decimal?          @db.Decimal(14, 4)
+  changePct           Decimal?          @db.Decimal(8, 4)
+  // ISO currency code as reported by the provider (e.g. "INR", "USD").
+  // Never assumed — Twelve Data reports this per-symbol, since NSE stocks
+  // are INR but a pair like BTC/USD is USD.
+  currency            String?
+  lastSuccessfulFetch DateTime?
+  lastAttemptAt       DateTime?
+  source              String
+  status              MarketDataStatus  @default(UNAVAILABLE)
+  updatedAt           DateTime          @updatedAt
+
+  @@map("market_price_cache")
+}
+
+model CategorizationRule {
+  id                 Int      @id @default(autoincrement())
+  descriptionPattern String
+  exactMatch         Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@unique([userId, descriptionPattern])
+  @@map("categorization_rules")
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ReviewQueueTransaction {
+  id              Int             @id @default(autoincrement())
+  amount          Decimal         @db.Decimal(12, 2)
+  type            TransactionType
+  description     String?
+  transactionHash String?         @unique
+  date            DateTime
+  sourceAccount   String?
+  destinationAccount String?
+  status          ReviewStatus    @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId, status])
+  @@map("review_queue_transactions")
+}
+
+model PortfolioRiskProfile {
+  id                      Int      @id @default(autoincrement())
+  userId                  Int      @unique
+  selectedRiskLevel       String   // "LOW" | "MODERATE" | "HIGH"
+  computedRiskScore       Int      // 0 to 100
+  computedRiskProfile     String   // "LOW" | "MODERATE" | "HIGH"
+  riskTolerance           String   // "CONSERVATIVE" | "MODERATE" | "AGGRESSIVE"
+  riskCapacity            String   // "LOW" | "MODERATE" | "HIGH"
+  investmentHorizon       String   // "<1_YEAR" | "1-3_YEARS" | "3-5_YEARS" | ">5_YEARS"
+  monthlyInvestableAmount Decimal? @db.Decimal(12, 2)
+  hasEmergencySavings     String   // "YES" | "NO" | "PARTIALLY"
+  hasHighInterestDebt     Boolean  @default(false)
+  experienceLevel         String   // "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED"
+  answersJson             String?  @db.Text
+  plannedInvestmentAmount Decimal? @db.Decimal(14, 2)
+  savedAllocationsJson    String?  @db.Text
+  notes                   String?  @db.Text
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_risk_profiles")
+}
