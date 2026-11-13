@@ -114,7 +114,7 @@ function WealthPreviewCard({ isLight }) {
           }}>
           <div className="flex items-center justify-between text-xs font-figure text-ink-soft">
             <span style={{ color: isLight ? "#435066" : "#94a3b8" }}>Total Expenses (Oct)</span>
-            <span className="p-1.5 rounded-full bg-rose-500/10 text-rose-400">
+            <span className="p-1.5 rounded-full bg-rose-500/10 text-rose-500 dark:text-rose-400">
               <ArrowUpRight className="h-3.5 w-3.5" />
             </span>
           </div>
@@ -122,7 +122,7 @@ function WealthPreviewCard({ isLight }) {
             <h3 className="font-figure text-2xl font-bold" style={{ color: isLight ? "#0f1b33" : "#ffffff" }}>
               ₹48,200
             </h3>
-            <div className="flex items-center gap-1.5 mt-1 font-figure text-[11px] text-amber-500 font-medium">
+            <div className="flex items-center gap-1.5 mt-1 font-figure text-[11px] font-medium" style={{ color: isLight ? "#b45309" : "#fbbf24" }}>
               <span>38% Savings Rate retained</span>
             </div>
           </div>
@@ -131,14 +131,14 @@ function WealthPreviewCard({ isLight }) {
         {/* Portfolio & Assets Quick Summary */}
         <div className="sm:col-span-4 rounded-2xl border p-4 flex flex-col justify-between relative overflow-hidden"
           style={{
-            borderColor: isLight ? "rgba(201, 162, 39, 0.3)" : "rgba(214, 255, 98, 0.25)",
+            borderColor: isLight ? "rgba(180, 120, 24, 0.35)" : "rgba(214, 255, 98, 0.25)",
             background: isLight
-              ? "linear-gradient(135deg, rgba(201, 162, 39, 0.06) 0%, rgba(201, 162, 39, 0.02) 100%)"
+              ? "linear-gradient(135deg, rgba(217, 146, 27, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%)"
               : "linear-gradient(135deg, rgba(214, 255, 98, 0.06) 0%, rgba(13, 17, 23, 0.4) 100%)",
           }}>
           <div className="flex items-center justify-between text-xs font-figure">
             <span style={{ color: isLight ? "#0f1b33" : "#ffffff" }}>Investments & Assets</span>
-            <CreditCard className="h-3.5 w-3.5 text-horizon" />
+            <CreditCard className="h-3.5 w-3.5" style={{ color: isLight ? "#b47818" : "#d6ff62" }} />
           </div>
           <div className="mt-2">
             <h3 className="font-figure text-2xl font-bold" style={{ color: isLight ? "#0f1b33" : "#ffffff" }}>
@@ -210,10 +210,10 @@ export default function HeroSection() {
           className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 mb-5 backdrop-blur-md shadow-xs transition-colors"
           style={{
             borderColor: isLight ? "#dfd9cc" : "rgba(255, 255, 255, 0.14)",
-            background: isLight ? "rgba(255, 255, 255, 0.8)" : "rgba(13, 17, 23, 0.6)",
+            background: isLight ? "rgba(255, 255, 255, 0.85)" : "rgba(13, 17, 23, 0.6)",
           }}
         >
-          <Sparkles className="h-3.5 w-3.5" style={{ color: isLight ? "#c9a227" : "#d6ff62" }} />
+          <Sparkles className="h-3.5 w-3.5" style={{ color: isLight ? "#b47818" : "#d6ff62" }} />
           <span
             className="font-figure text-[11px] uppercase tracking-[0.2em] font-semibold"
             style={{ color: isLight ? "#0f1b33" : "rgba(255, 255, 255, 0.9)" }}

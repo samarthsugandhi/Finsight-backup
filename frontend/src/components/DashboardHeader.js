@@ -12,8 +12,8 @@ export default function DashboardHeader({ onMenuClick }) {
 
   return (
     <header className="border-b border-line bg-paper-raised transition-colors duration-300">
-      <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {/* Mobile nav toggle — only shown on pages that pass a handler (i.e. have a sidebar) */}
           {onMenuClick && (
             <button
@@ -26,8 +26,11 @@ export default function DashboardHeader({ onMenuClick }) {
           )}
 
           {user && (
-            <p className="font-editorial text-xs text-ink-soft sm:text-sm">
-              Welcome back, <span className="font-semibold text-ink">{user.name}</span>
+            <p className="font-editorial text-xs text-ink-soft sm:text-sm min-w-0 truncate max-w-[160px] xs:max-w-[200px] sm:max-w-none">
+              Welcome back,{" "}
+              <span className="font-semibold text-ink">
+                {user.name?.split(" ")[0] || user.name}
+              </span>
             </p>
           )}
         </div>

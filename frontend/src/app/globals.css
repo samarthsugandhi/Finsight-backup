@@ -36,11 +36,15 @@
   --color-paper-raised: #ffffff;
   --color-ink: #0f1b33;         /* deep navy */
   --color-ink-soft: #435066;
-  --color-horizon: #e2a33d;     /* original amber accent */
-  --color-horizon-dim: #f6e2b8;
-  --color-signal-pos: #2f8f66;  /* positive */
-  --color-signal-neg: #a23e48;  /* negative */
+  --color-horizon: #b47818;     /* in light mode: deep warm gold/amber with >4.5:1 contrast */
+  --color-horizon-bright: #e2a33d;
+  --color-horizon-dim: #fef3c7; /* warm soft amber tint */
+  --color-horizon-badge: #92400e;
+  --color-signal-pos: #15803d;  /* positive */
+  --color-signal-neg: #b91c1c;  /* negative */
   --color-line: #dfd9cc;        /* hairline border */
+  --color-accent-hero: #d9921b; /* light mode warm amber accent */
+  --color-accent-hero-dim: rgba(217, 146, 27, 0.22);
   
   --font-display: "FK Screamer", Georgia, "Iowan Old Style", serif;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -54,10 +58,14 @@
   --color-ink: #ffffff;         /* Pure white text for absolute readability */
   --color-ink-soft: #d1d5db;    /* High contrast cool gray for subtexts */
   --color-horizon: #d6ff62;     /* Finova Neon Lime Green accent */
-  --color-horizon-dim: rgba(214, 255, 98, 0.25);
+  --color-horizon-bright: #d6ff62;
+  --color-horizon-dim: rgba(214, 255, 98, 0.22);
+  --color-horizon-badge: #d6ff62;
   --color-signal-pos: #10d98a;  /* Finova green */
   --color-signal-neg: #f87171;  /* light crimson */
-  --color-line: rgba(255, 255, 255, 0.18); /* Increased visibility border for dark theme */
+  --color-line: rgba(255, 255, 255, 0.16); /* Increased visibility border for dark theme */
+  --color-accent-hero: #d6ff62; /* dark mode neon lime accent */
+  --color-accent-hero-dim: rgba(214, 255, 98, 0.25);
 }
 
 @theme inline {
@@ -153,8 +161,8 @@ select option {
 :root:not(.dark) .hero-section {
   background-color: #f6f4ef;
   color: #0f1b33;
-  --color-accent-hero: #d6ff62;
-  --color-accent-hero-dim: rgba(214, 255, 98, 0.25);
+  --color-accent-hero: #d9921b;
+  --color-accent-hero-dim: rgba(217, 146, 27, 0.22);
 }
 
 .dark .hero-section {
@@ -216,5 +224,136 @@ text.recharts-pie-label-text {
     transform: none;
     transition: none;
   }
+}
+
+/* ─── PWA / Mobile shell ─────────────────────────────────────────── */
+
+/* Respect safe areas on notched phones */
+html, body {
+  /* Prevent zoom on double-tap on iOS */
+  touch-action: manipulation;
+  /* Full-height shell */
+  min-height: 100%;
+}
+
+/* Smooth momentum scrolling on iOS */
+.overflow-y-auto, main, [data-scroll] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent body scroll when a modal/sheet is open */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* ─── Loading Skeleton ───────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--color-line) 25%,
+    var(--color-paper-raised) 50%,
+    var(--color-line) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ─── Mobile card polish ─────────────────────────────────────────── */
+/* Cards get slightly more rounded corners and generous tap areas on small screens */
+@media (max-width: 639px) {
+  /* Prevent any page from causing horizontal scroll without breaking scroll containers */
+  html, body {
+    overflow-x: clip;
+    max-width: 100vw;
+  }
+
+  /* Ensure content inside dashboard pages does not overflow */
+  main {
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
+  /* Rounded card treatment */
+  [class*="rounded-xl"], [class*="rounded-2xl"] {
+    border-radius: 16px;
+  }
+
+  /* Minimum 44px touch targets for interactive elements */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Exception: tiny inline icon buttons inside dense UIs */
+  button.touch-mini, a.touch-mini {
+    min-height: unset;
+  }
+
+  /* Prevent iOS from zooming in on form inputs (requires font-size >= 16px) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ─── Apple-quality polish ───────────────────────────────────────── */
+
+/* Smooth scroll globally */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove ugly tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS rubber-band overscroll: use the app background colour */
+html, body {
+  overscroll-behavior: none;
+  background-color: var(--color-paper);
+}
+
+/* Support dvh units for full-height panels on mobile */
+@supports (height: 100dvh) {
+  .h-screen-safe { height: 100dvh; }
+  .min-h-screen-safe { min-height: 100dvh; }
+  .max-h-screen-safe { max-height: 100dvh; }
+}
+
+/* Smooth, native-feeling interactive element transitions */
+button, a, [role="button"], input, select, textarea {
+  transition-property: background-color, border-color, color, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-duration: 160ms;
+}
+
+/* Momentum scrolling on scrollable containers */
+.overflow-y-auto, .overflow-y-scroll, main, [data-scroll] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbars on horizontal scroll strips but keep them functional */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe-area bottom padding helper */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pb-tab-safe {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 

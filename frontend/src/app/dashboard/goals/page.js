@@ -137,7 +137,7 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader
         title="Savings Goals"
         description="Savings come from your actual transactions (income − expenses). Allocate what's unallocated to whichever goal needs it."
@@ -161,7 +161,7 @@ export default function GoalsPage() {
                 </p>
                 <p className="mt-1 text-xs text-ink-soft">
                   This usually happens when an expense is added after money was already allocated to a goal. Your
-                  goal contributions haven't been changed — nothing was reversed or moved automatically. Review your
+                  goal contributions haven&apos;t been changed — nothing was reversed or moved automatically. Review your
                   goals below and decide whether to adjust anything yourself.
                 </p>
               </div>

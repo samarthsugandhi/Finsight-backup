@@ -516,9 +516,10 @@ export default function FinAIChat() {
   // Detect local speech synthesis on mount
   useEffect(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      setTtsSupported(true);
+      const timer = setTimeout(() => setTtsSupported(true), 0);
       // Pre-warm voices
       window.speechSynthesis.getVoices();
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -651,18 +652,20 @@ export default function FinAIChat() {
     }
 
     // Populate welcome bubble into messages if empty
-    setMessages((prev) => {
-      if (prev.length > 0 || prev.some((m) => m.id === "welcome_greeting")) return prev;
-      return [
-        {
-          id: "welcome_greeting",
-          role: "assistant",
-          content: WELCOME_GREETING,
-          displayText: WELCOME_GREETING,
-          action: null,
-        },
-      ];
-    });
+    const welcomeTimer = setTimeout(() => {
+      setMessages((prev) => {
+        if (prev.length > 0 || prev.some((m) => m.id === "welcome_greeting")) return prev;
+        return [
+          {
+            id: "welcome_greeting",
+            role: "assistant",
+            content: WELCOME_GREETING,
+            displayText: WELCOME_GREETING,
+            action: null,
+          },
+        ];
+      });
+    }, 0);
 
     // Guard: only speak automatically once per page session
     if (hasSpokenWelcomeRef.current || sessionAlreadySpoken) {
@@ -693,8 +696,12 @@ export default function FinAIChat() {
           playSpeechOnce(WELCOME_GREETING, "welcome_greeting", false);
         }
       }, 350);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(welcomeTimer);
+      };
     }
+    return () => clearTimeout(welcomeTimer);
   }, [chatOpen, voiceState, playSpeechOnce]);
 
   // ── Send handler ─────────────────────────────────────────────────────────────
@@ -996,11 +1003,28 @@ export default function FinAIChat() {
   const dragOffset = useRef({ dx: 0, dy: 0 });
   const widgetRef = useRef(null);
 
+  // Mobile detection (< 1024px) — disable drag, use bottom sheet
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    setPosition(loadPosition());
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const timer = setTimeout(() => setIsMobile(mq.matches), 0);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => {
+      clearTimeout(timer);
+      mq.removeEventListener("change", handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPosition(loadPosition());
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   function handleDragStart(e) {
+    if (isMobile) return; // no drag on mobile
     const point = e.touches ? e.touches[0] : e;
     const rect = widgetRef.current.getBoundingClientRect();
     dragOffset.current = { dx: point.clientX - rect.left, dy: point.clientY - rect.top };
@@ -1011,6 +1035,7 @@ export default function FinAIChat() {
     if (!dragging) return;
 
     function handleMove(e) {
+      if (isMobile) return;
       const point = e.touches ? e.touches[0] : e;
       const rect = widgetRef.current.getBoundingClientRect();
       const next = clampToViewport(
@@ -1039,10 +1064,13 @@ export default function FinAIChat() {
       window.removeEventListener("touchmove", handleMove);
       window.removeEventListener("touchend", handleUp);
     };
-  }, [dragging]);
+  }, [dragging, isMobile]);
 
-  const wrapperStyle =
-    position.x !== null
+  const wrapperStyle = isMobile
+    // Mobile: bottom-sheet anchor — panel overlays the whole screen
+    ? { position: "fixed", inset: 0, zIndex: 50, pointerEvents: chatOpen ? "auto" : "none" }
+    // Desktop: floating widget
+    : position.x !== null
       ? { position: "fixed", left: position.x, top: position.y, right: "auto", bottom: "auto", zIndex: 40 }
       : { position: "fixed", right: 24, bottom: 24, zIndex: 40 };
 
@@ -1057,6 +1085,36 @@ export default function FinAIChat() {
       }
     };
   }, [stopSpeaking]);
+
+  // ── Global Event Listeners (e.g. BottomTabBar on mobile / PWA) ──────────────
+  useEffect(() => {
+    const handleOpen = () => setChatOpen(true);
+    const handleClose = () => {
+      setChatOpen(false);
+      stopSpeaking();
+    };
+    const handleToggle = () => {
+      setChatOpen((prev) => {
+        if (prev) stopSpeaking();
+        return !prev;
+      });
+    };
+
+    window.addEventListener("finsight:open-finai", handleOpen);
+    window.addEventListener("finsight:close-finai", handleClose);
+    window.addEventListener("finsight:toggle-finai", handleToggle);
+
+    return () => {
+      window.removeEventListener("finsight:open-finai", handleOpen);
+      window.removeEventListener("finsight:close-finai", handleClose);
+      window.removeEventListener("finsight:toggle-finai", handleToggle);
+    };
+  }, [stopSpeaking]);
+
+  // Broadcast open/close state to bottom navigation
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("finsight:finai-state", { detail: { open: chatOpen } }));
+  }, [chatOpen]);
 
   // ── Confirm action ────────────────────────────────────────────────────────
   async function handleConfirmAction() {
@@ -1092,13 +1150,22 @@ export default function FinAIChat() {
     if (voiceState === "PROCESSING") return "Processing…";
     if (voiceState === "SPEAKING") return "Speaking (Samantha)…";
     if (chatLoading) return "Thinking…";
-    return "Ready · drag header to move";
+    return isMobile ? "Ready" : "Ready · drag header to move";
   })();
 
   return (
     <div ref={widgetRef} style={wrapperStyle}>
-      {/* Trigger button */}
-      {!chatOpen && (
+      {/* On mobile / tablet, FinAI is in the bottom footer tab bar, so no floating button */}
+      {/* Mobile: backdrop shown when chat is open */}
+      {isMobile && chatOpen && (
+        <div
+          className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
+          style={{ pointerEvents: "auto" }}
+          onClick={() => { setChatOpen(false); stopSpeaking(); }}
+        />
+      )}
+      {/* Desktop: floating trigger button */}
+      {!isMobile && !chatOpen && (
         <motion.button
           onDoubleClick={() => setChatOpen(true)}
           whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
@@ -1130,17 +1197,23 @@ export default function FinAIChat() {
       <AnimatePresence>
         {chatOpen && (
           <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95, y: 10 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? "100%" : 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="w-[390px] max-w-[92vw] h-[580px] rounded-2xl border border-horizon/25 bg-paper-raised/95 shadow-2xl backdrop-blur-md flex flex-col overflow-hidden font-editorial"
+            exit={{ opacity: 0, scale: isMobile ? 1 : 0.95, y: isMobile ? "100%" : 10 }}
+            transition={isMobile ? { type: "spring", stiffness: 300, damping: 32 } : { type: "spring", stiffness: 300, damping: 28 }}
+            className={
+              isMobile
+                // Mobile: full-screen bottom sheet
+                ? "absolute inset-x-0 bottom-0 top-16 rounded-t-3xl border-t border-line bg-paper-raised shadow-2xl flex flex-col overflow-hidden font-editorial"
+                // Desktop: floating panel
+                : "w-[390px] max-w-[92vw] h-[580px] rounded-2xl border border-horizon/25 bg-paper-raised/95 shadow-2xl backdrop-blur-md flex flex-col overflow-hidden font-editorial"
+            }
           >
             {/* Header */}
             <div
-              onMouseDown={handleDragStart}
-              onTouchStart={handleDragStart}
-              className="px-4 py-3 border-b border-line flex justify-between items-center bg-gradient-to-r from-horizon/15 to-transparent cursor-grab active:cursor-grabbing select-none"
+              onMouseDown={isMobile ? undefined : handleDragStart}
+              onTouchStart={isMobile ? undefined : handleDragStart}
+              className={`px-4 py-3 border-b border-line flex justify-between items-center bg-gradient-to-r from-horizon/15 to-transparent select-none ${isMobile ? "cursor-default" : "cursor-grab active:cursor-grabbing"}`}
             >
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-horizon/25 text-horizon">
@@ -1283,7 +1356,7 @@ export default function FinAIChat() {
             </div>
 
             {/* Input area */}
-            <form onSubmit={handleSend} className="p-3 border-t border-line bg-paper space-y-2">
+            <form onSubmit={handleSend} className="p-3 border-t border-line bg-paper space-y-2 shrink-0 sticky bottom-0">
               {/* Recording / Listening State preview */}
               <AnimatePresence>
                 {voiceState === "RECORDING" && (

@@ -160,94 +160,96 @@ function ReportPeriodSelector({
 
   return (
     <div className="rounded-xl border border-line bg-paper-raised p-4 mb-6">
-      <div className="flex flex-wrap items-center gap-4">
-        {/* Mode tabs */}
-        <div className="flex items-center rounded-lg bg-paper p-1 border border-line gap-0.5">
-          {modes.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => { setPeriodMode(m.id); setDateRangeError(""); }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer transition-all duration-200 ${
-                periodMode === m.id
-                  ? "bg-horizon text-[#0f1b33] shadow-sm"
-                  : "text-ink-soft hover:text-ink hover:bg-ink/5"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+      <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
+        <div className="flex flex-nowrap items-center gap-3 w-max">
+          {/* Mode tabs */}
+          <div className="flex items-center rounded-lg bg-paper p-1 border border-line gap-0.5 shrink-0">
+            {modes.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => { setPeriodMode(m.id); setDateRangeError(""); }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer transition-all duration-200 ${
+                  periodMode === m.id
+                    ? "bg-horizon text-[#0f1b33] shadow-sm"
+                    : "text-ink-soft hover:text-ink hover:bg-ink/5"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Monthly controls */}
+          {periodMode === "monthly" && (
+            <div className="flex items-center gap-2 shrink-0">
+              <select
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+                className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
+              >
+                {MONTH_OPTS.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+              <select
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
+              >
+                {YEAR_OPTS.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Yearly controls */}
+          {periodMode === "yearly" && (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-ink-soft">Year:</span>
+              <select
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
+              >
+                {YEAR_OPTS.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Custom range controls */}
+          {periodMode === "custom" && (
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-ink-soft whitespace-nowrap">From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => { setStartDate(e.target.value); setDateRangeError(""); }}
+                  className="px-2 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-ink-soft whitespace-nowrap">To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setDateRangeError(""); }}
+                  className="px-2 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
+                />
+              </div>
+              {dateRangeError && (
+                <span className="text-xs text-signal-neg font-editorial whitespace-nowrap">{dateRangeError}</span>
+              )}
+            </div>
+          )}
+
+          {loading && (
+            <span className="text-xs text-horizon font-editorial animate-pulse flex items-center gap-1.5 shrink-0">
+              <span className="inline-block h-2 w-2 rounded-full bg-horizon animate-ping" />
+              Loading report…
+            </span>
+          )}
         </div>
-
-        {/* Monthly controls */}
-        {periodMode === "monthly" && (
-          <div className="flex items-center gap-2">
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
-            >
-              {MONTH_OPTS.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-            <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
-            >
-              {YEAR_OPTS.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-        )}
-
-        {/* Yearly controls */}
-        {periodMode === "yearly" && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-ink-soft">Year:</span>
-            <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              className="px-3 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
-            >
-              {YEAR_OPTS.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-        )}
-
-        {/* Custom range controls */}
-        {periodMode === "custom" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <label className="text-xs text-ink-soft">From:</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setDateRangeError(""); }}
-                className="px-2 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
-              />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <label className="text-xs text-ink-soft">To:</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setDateRangeError(""); }}
-                className="px-2 py-1.5 bg-paper border border-line rounded-md text-xs text-ink focus:outline-none focus:border-horizon cursor-pointer"
-              />
-            </div>
-            {dateRangeError && (
-              <span className="text-xs text-signal-neg font-editorial">{dateRangeError}</span>
-            )}
-          </div>
-        )}
-
-        {loading && (
-          <span className="ml-auto text-xs text-horizon font-editorial animate-pulse flex items-center gap-1.5">
-            <span className="inline-block h-2 w-2 rounded-full bg-horizon animate-ping" />
-            Loading report…
-          </span>
-        )}
       </div>
     </div>
   );
@@ -465,7 +467,7 @@ export default function ReportsPage() {
     .map((c) => ({ name: c.categoryName, value: c.amount, pct: c.percentage }));
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-5 py-6 sm:py-10">
       <PageHeader
         title="Reports"
         description={`Financial performance for ${periodLabel} · Currency: INR`}

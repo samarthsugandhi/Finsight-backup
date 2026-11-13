@@ -33,7 +33,7 @@ export default function BankStatementsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       {/* Page header */}
       <PageHeader
         title="Bank Statement Import"
@@ -64,7 +64,7 @@ export default function BankStatementsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
-        className="mb-8 grid grid-cols-3 gap-3 text-center text-xs text-ink-soft"
+        className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs text-ink-soft"
       >
         {[
           { step: "01", title: "Extract", desc: "Raw text pulled from your PDF using the server-side parser" },

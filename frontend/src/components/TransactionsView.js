@@ -538,10 +538,10 @@ export default function TransactionsView({ store, fixedType }) {
         <ul className={`mt-4 divide-y divide-line transition-opacity duration-200 ${periodLoading ? "opacity-60" : "opacity-100"}`}>
           {visible.map((tx) => (
             <li key={tx.id} className="overflow-hidden">
-              <div className="flex items-center justify-between py-3">
-                <div className="font-editorial">
+              <div className="flex items-center justify-between py-3 gap-3">
+                <div className="font-editorial min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm text-ink font-semibold">{tx.description || tx.categoryName}</p>
+                    <p className="text-sm text-ink font-semibold truncate">{tx.description || tx.categoryName}</p>
                     {tx.type === "TRANSFER" && (
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${
@@ -563,7 +563,7 @@ export default function TransactionsView({ store, fixedType }) {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                   <span
                     className={`font-figure text-sm font-semibold ${
                       tx.type === "INCOME"
@@ -675,7 +675,7 @@ export default function TransactionsView({ store, fixedType }) {
                         {cand.transaction.categoryName}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <span className="font-figure text-sm font-semibold text-ink">
                         ₹{Number(cand.transaction.amount).toFixed(2)}
                       </span>

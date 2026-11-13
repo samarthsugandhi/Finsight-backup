@@ -2,11 +2,27 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import MotionProviders from "@/components/MotionProviders";
+import PWARegister from "@/components/PWARegister";
 
 export const metadata = {
   title: "Finsight — Clarity for your money",
   description:
     "AI-Powered Personal Finance and Decision Support Platform",
+  applicationName: "FinSight",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/favicon.ico", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "FinSight", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f4ef" },
+    { media: "(prefers-color-scheme: dark)", color: "#080b12" },
+  ],
 };
 
 export default function RootLayout({ children }) {
@@ -34,6 +50,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <AuthProvider>
             <MotionProviders>{children}</MotionProviders>
+            <PWARegister />
           </AuthProvider>
         </ThemeProvider>
       </body>

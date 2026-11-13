@@ -125,7 +125,7 @@ export default function DashboardPage() {
     if (hr < 12) return "Good morning";
     if (hr < 17) return "Good afternoon";
     return "Good evening";
-  }, []);
+  }, [setPeriodLoading, setPeriodError, setPeriodSummary, setPeriodHealth, setPeriodTransactions, setPeriodBudgets]);
 
   const periodLabel = useMemo(() => {
     if (periodMode === "monthly") {
@@ -166,7 +166,7 @@ export default function DashboardPage() {
     } finally {
       setPeriodLoading(false);
     }
-  }, []);
+  }, [setPeriodLoading, setPeriodError, setPeriodSummary, setPeriodHealth, setPeriodTransactions, setPeriodBudgets]);
 
   useEffect(() => {
     if (!loading && summary) {
@@ -384,60 +384,76 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6 font-editorial space-y-6">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-5 sm:py-6 font-editorial space-y-5 sm:space-y-6">
       <ErrorState message={error} onRetry={refetch} />
 
       {/* ── A. Header ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-line">
-        <div>
-          <h1 className="font-screamer text-2xl uppercase tracking-wide text-ink">
+      <div className="flex flex-col gap-3 pb-4 border-b border-line sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-screamer text-xl sm:text-2xl uppercase tracking-wide text-ink truncate">
             {greetingTime}, {user?.name?.split(" ")[0] || "Investor"}
           </h1>
-          <p className="text-xs text-ink-soft mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5 truncate">
             Financial overview for <span className="font-semibold text-ink">{periodLabel}</span>.
           </p>
         </div>
 
-        {/* Period Selector */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg bg-paper-raised p-1 border border-line">
-            {[
-              { id: "monthly", label: "Monthly" },
-              { id: "yearly", label: "Yearly" },
-              { id: "all_time", label: "All Time" },
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setPeriodMode(item.id)}
-                className={`px-3 py-1 text-xs font-semibold rounded-md cursor-pointer transition-all ${
-                  periodMode === item.id
-                    ? "bg-horizon text-[#0f1b33] shadow-sm font-bold"
-                    : "text-ink-soft hover:text-ink hover:bg-paper"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+        {/* Period Selector — horizontally scrollable on mobile */}
+        <div className="overflow-x-auto scrollbar-none -mx-0.5 px-0.5">
+          <div className="flex items-center gap-2 w-max">
+            <div className="flex items-center rounded-lg bg-paper-raised p-1 border border-line shrink-0">
+              {[
+                { id: "monthly", label: "Monthly" },
+                { id: "yearly", label: "Yearly" },
+                { id: "all_time", label: "All Time" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setPeriodMode(item.id)}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md cursor-pointer transition-all ${
+                    periodMode === item.id
+                      ? "bg-horizon text-[#0f1b33] shadow-sm font-bold"
+                      : "text-ink-soft hover:text-ink hover:bg-paper"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
 
-          {periodMode === "monthly" && (
-            <div className="flex items-center gap-1.5">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none"
-              >
-                {MONTH_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+            {periodMode === "monthly" && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none"
+                >
+                  {MONTH_OPTIONS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none"
+                >
+                  {YEAR_OPTIONS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {periodMode === "yearly" && (
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none"
+                className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none shrink-0"
               >
                 {YEAR_OPTIONS.map((y) => (
                   <option key={y} value={y}>
@@ -445,29 +461,15 @@ export default function DashboardPage() {
                   </option>
                 ))}
               </select>
-            </div>
-          )}
+            )}
 
-          {periodMode === "yearly" && (
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-2 py-1 bg-paper-raised border border-line rounded-md text-xs text-ink focus:border-horizon cursor-pointer outline-none"
-            >
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {periodLoading && (
-            <span className="flex items-center gap-1 text-[11px] text-horizon animate-pulse">
-              <span className="h-1.5 w-1.5 rounded-full bg-horizon animate-ping" />
-              Syncing…
-            </span>
-          )}
+            {periodLoading && (
+              <span className="flex items-center gap-1 text-[11px] text-horizon animate-pulse shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-horizon animate-ping" />
+                Syncing…
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

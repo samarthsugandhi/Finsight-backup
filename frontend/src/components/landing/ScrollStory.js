@@ -1,11 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import {
   motion,
-  useScroll,
-  useTransform,
-  useSpring,
   useInView,
   AnimatePresence,
 } from "framer-motion";
@@ -15,77 +12,76 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
-  PieChart,
-  ShieldCheck,
   HelpCircle,
-  TrendingUp,
-  Sliders,
-  Check,
   Cpu,
-  RefreshCw,
-  Coins,
+  Layers,
+  ShieldCheck,
+  TrendingUp,
+  Receipt,
+  Check,
+  Zap,
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 /* ═══════════════════════════════════════════════════════════════════ */
 /* Scene A — Financial Clarity & Three Pillars                         */
 /* ═══════════════════════════════════════════════════════════════════ */
 function SceneIntro() {
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 25 });
-  const lineWidth = useTransform(smooth, [0.15, 0.55], ["0%", "100%"]);
-  const glowX = useTransform(smooth, [0.15, 0.75], ["0%", "100%"]);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const [activePillar, setActivePillar] = useState(null);
 
   const pillars = [
     {
+      id: "inr",
       title: "INR-native by default",
       tag: "Currency & Context",
       badge: "₹ INR Native",
-      body: "Rupee-first formatting, Indian tax year awareness, and native handling of UPI, NEFT, and IMPS flows.",
-      accent: "var(--color-horizon)",
+      body: "Rupee-first formatting, Indian financial year awareness, and first-class handling of UPI, NEFT, and IMPS transaction flows.",
+      accent: isLight ? "#b47818" : "#d6ff62",
       stat: "100% Indian Banking Native",
-      flow: ["UPI QR", "IMPS", "NEFT P2P"],
+      detail: "Handles Lakhs & Crores notation (₹12,40,000), IFSC resolution, and UPI VPA vendor parsing with zero Americanization.",
+      icon: Receipt,
     },
     {
+      id: "dual",
       title: "Statement-first onboarding",
       tag: "Verification First",
       badge: "Dual-Pass Engine",
-      body: "Upload bank statements, inspect every row with auto-categorisation, and approve before permanent posting.",
-      accent: "#c9a227",
+      body: "Upload Indian bank statements, inspect every row with auto-categorisation, and review before permanent posting to the ledger.",
+      accent: isLight ? "#92400e" : "#c9a227",
       stat: "Zero Auto-Posting Errors",
-      flow: ["HDFC · ICICI · SBI", "Review Queue", "Ledger"],
+      detail: "Rule-based deterministic tokenizer matches 94% of recurring merchants; ambiguous transfers await your explicit one-click approval.",
+      icon: Layers,
     },
     {
+      id: "transparent",
       title: "Transparent FinScore",
       tag: "Zero Black Boxes",
       badge: "Audit Grade",
-      body: "Every metric, ratio, and advisor suggestion is mathematically traceable back to your verified ledger.",
-      accent: "#d6ff62",
+      body: "Every metric, ratio, and advisor recommendation is mathematically traceable back to verified rows in your personal ledger.",
+      accent: isLight ? "#15803d" : "#d6ff62",
       stat: "74 / 100 Live Composite",
-      flow: ["Savings", "Debt Ratio", "Liquidity"],
+      detail: "Weighted formula balancing Savings Rate (25%), Emergency Runway (25%), Debt DTI (20%), Asset Mix (15%), and Cash-flow Stability (15%).",
+      icon: ShieldCheck,
     },
   ];
 
   return (
-    <section ref={containerRef} className="mx-auto max-w-6xl px-6 pt-12 pb-10 sm:pt-16 sm:pb-14 relative">
+    <section className="mx-auto max-w-6xl px-6 py-12 sm:py-16 relative">
       <motion.div
-        initial={{ opacity: 0, y: 32 }}
+        initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         viewport={{ once: true, margin: "-8% 0px" }}
         className="text-center mb-10 sm:mb-12"
       >
-        <p
-          className="font-figure text-xs uppercase tracking-[0.3em] mb-4"
-          style={{ color: "var(--color-horizon)" }}
-        >
-          Scene 1 — Financial Clarity
-        </p>
+        <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 mb-3 text-[11px] font-figure uppercase tracking-widest font-semibold" style={{ background: "var(--color-horizon-dim)", color: isLight ? "#92400e" : "var(--color-horizon)" }}>
+          <Sparkles className="h-3 w-3" />
+          <span>Scene 1 — Financial Clarity</span>
+        </div>
         <h2
-          className="font-screamer text-5xl sm:text-6xl lg:text-7xl leading-tight"
+          className="font-screamer text-4xl sm:text-5xl lg:text-6xl leading-tight"
           style={{ color: "var(--color-ink)" }}
         >
           Everything connected,
@@ -93,7 +89,7 @@ function SceneIntro() {
           nothing black-boxed.
         </h2>
         <p
-          className="font-editorial mt-5 text-lg leading-relaxed mx-auto max-w-2xl"
+          className="font-editorial mt-4 text-base sm:text-lg leading-relaxed mx-auto max-w-2xl"
           style={{ color: "var(--color-ink-soft)" }}
         >
           FinSight bridges raw bank statement files, transparent financial health scoring,
@@ -102,86 +98,113 @@ function SceneIntro() {
       </motion.div>
 
       {/* Dynamic Animated Connector Beam between Pillars */}
-      <div className="relative mb-6 hidden sm:block">
-        <div className="h-px w-full bg-line/40 relative overflow-hidden">
+      <div className="relative mb-8 hidden sm:block">
+        <div className="h-px w-full relative overflow-hidden" style={{ background: "var(--color-line)" }}>
           <motion.div
-            style={{ width: lineWidth }}
-            className="h-full bg-gradient-to-r from-transparent via-horizon to-amber-400"
+            initial={{ width: "0%" }}
+            whileInView={{ width: "100%" }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="h-full"
+            style={{
+              background: isLight
+                ? "linear-gradient(90deg, transparent, #b47818, #d9921b, transparent)"
+                : "linear-gradient(90deg, transparent, var(--color-horizon), #c9a227, transparent)",
+            }}
           />
         </div>
-        <motion.div
-          style={{ left: glowX }}
-          className="absolute -top-1 h-2.5 w-2.5 rounded-full bg-horizon blur-xs shadow-lg shadow-horizon"
-        />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">
-        {pillars.map((p, i) => (
-          <motion.div
-            key={p.title}
-            initial={{ opacity: 0, y: 28, scale: 0.98 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: i * 0.12, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            viewport={{ once: true, margin: "-6% 0px" }}
-            whileHover={{ y: -5, transition: { duration: 0.25 } }}
-            className="rounded-2xl border p-6 flex flex-col justify-between group transition-all relative overflow-hidden backdrop-blur-xs"
-            style={{
-              borderColor: "var(--color-line)",
-              background: "var(--color-paper-raised)",
-            }}
-          >
-            {/* Top ambient highlight on hover */}
-            <div
-              className="absolute inset-x-0 top-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ background: `linear-gradient(90deg, transparent, ${p.accent}, transparent)` }}
-            />
+        {pillars.map((p, i) => {
+          const Icon = p.icon;
+          const isSelected = activePillar === p.id;
+          return (
+            <motion.div
+              key={p.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "-6% 0px" }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setActivePillar(isSelected ? null : p.id)}
+              className="rounded-2xl border p-6 flex flex-col justify-between group transition-all relative overflow-hidden backdrop-blur-xs shadow-xs hover:shadow-md cursor-pointer"
+              style={{
+                borderColor: isSelected ? "var(--color-horizon)" : "var(--color-line)",
+                background: "var(--color-paper-raised)",
+              }}
+            >
+              {/* Top ambient highlight on hover */}
+              <div
+                className="absolute inset-x-0 top-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ background: `linear-gradient(90deg, transparent, ${p.accent}, transparent)` }}
+              />
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <span
-                  className="font-figure text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-semibold"
-                  style={{
-                    background: "var(--color-horizon-dim)",
-                    color: "var(--color-horizon)",
-                  }}
-                >
-                  {p.tag}
-                </span>
-                <span className="font-figure text-xs font-semibold" style={{ color: "var(--color-ink-soft)" }}>
-                  0{i + 1}
-                </span>
-              </div>
-
-              <h3 className="font-screamer text-xl uppercase tracking-wide mb-2 group-hover:text-horizon transition-colors" style={{ color: "var(--color-ink)" }}>
-                {p.title}
-              </h3>
-              <p className="font-editorial text-sm leading-6" style={{ color: "var(--color-ink-soft)" }}>
-                {p.body}
-              </p>
-
-              {/* Micro-visual flow preview */}
-              <div className="mt-4 pt-3.5 border-t border-line/60 flex items-center justify-between text-[11px] font-figure">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.accent }} />
-                  <span className="text-ink font-medium">{p.stat}</span>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="font-figure text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-semibold"
+                    style={{
+                      background: "var(--color-horizon-dim)",
+                      color: isLight ? "#92400e" : "var(--color-horizon)",
+                    }}
+                  >
+                    {p.tag}
+                  </span>
+                  <div className="flex items-center gap-1.5 font-figure text-xs font-semibold" style={{ color: "var(--color-ink-soft)" }}>
+                    <Icon className="h-3.5 w-3.5 text-horizon" />
+                    <span>0{i + 1}</span>
+                  </div>
                 </div>
-                <span className="text-ink-soft text-[10px] opacity-70 truncate max-w-[120px]">{p.badge}</span>
-              </div>
-            </div>
 
-            <div className="mt-5 pt-3.5 border-t flex items-center justify-between text-xs font-figure" style={{ borderColor: "var(--color-line)" }}>
-              <span className="text-ink-soft group-hover:text-ink transition-colors">Inspect flow</span>
-              <ArrowRight className="h-3.5 w-3.5 text-horizon transform group-hover:translate-x-1 transition-transform" />
-            </div>
-          </motion.div>
-        ))}
+                <h3 className="font-screamer text-xl uppercase tracking-wide mb-2 group-hover:text-horizon transition-colors" style={{ color: "var(--color-ink)" }}>
+                  {p.title}
+                </h3>
+                <p className="font-editorial text-sm leading-6" style={{ color: "var(--color-ink-soft)" }}>
+                  {p.body}
+                </p>
+
+                {/* Expanded Micro-architecture disclosure */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 pt-3 border-t text-xs font-editorial leading-relaxed rounded-lg p-2.5"
+                      style={{
+                        background: "var(--color-paper)",
+                        borderColor: "var(--color-line)",
+                        color: "var(--color-ink)",
+                      }}
+                    >
+                      <span className="font-figure text-[10px] uppercase tracking-wider block font-semibold mb-1" style={{ color: "var(--color-horizon)" }}>
+                        Architectural Guarantee
+                      </span>
+                      {p.detail}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Micro-visual flow preview */}
+                <div className="mt-4 pt-3.5 border-t flex items-center justify-between text-[11px] font-figure" style={{ borderColor: "var(--color-line)" }}>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.accent }} />
+                    <span className="text-ink font-medium">{p.stat}</span>
+                  </div>
+                  <span className="text-ink-soft text-[10px] opacity-75 truncate max-w-[120px]">{p.badge}</span>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/* Scene B — Statement Transformation (Sticky + Interactive Tabs)       */
+/* Scene B — Statement Transformation (Compact & Rich Interactive)     */
 /* ═══════════════════════════════════════════════════════════════════ */
 
 const SAMPLE_TXNS = [
@@ -193,78 +216,41 @@ const SAMPLE_TXNS = [
 ];
 
 function SceneStatement() {
-  const containerRef = useRef(null);
-  const [activeTab, setActiveTab] = useState(null); // null = scroll-driven, or 0, 1, 2, 3
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const [activeTab, setActiveTab] = useState("all");
   const [reviewedItems, setReviewedItems] = useState({ 2: false, 5: false });
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 85, damping: 26 });
-
-  // Phase transforms
-  const scrollDocX    = useTransform(smooth, [0.0, 0.22], [-60, 0]);
-  const scrollDocO    = useTransform(smooth, [0.0, 0.18], [0, 1]);
-  const scrollDocTilt = useTransform(smooth, [0.0, 0.25, 0.6], [-10, -3, 3]);
-  const scrollScanTop = useTransform(smooth, [0.08, 0.42], ["0%", "100%"]);
-
-  const scrollReviewY = useTransform(smooth, [0.35, 0.65], [40, 0]);
-  const scrollReviewO = useTransform(smooth, [0.35, 0.58], [0, 1]);
-  const scrollLedgerY = useTransform(smooth, [0.52, 0.82], [40, 0]);
-  const scrollLedgerO = useTransform(smooth, [0.52, 0.72], [0, 1]);
-
-  const stepText = useTransform(smooth, (v) => {
-    if (activeTab === 0) return "Phase 1: Ingesting bank statement PDF";
-    if (activeTab === 1) return "Phase 2: Extracting & tokenizing transaction rows";
-    if (activeTab === 2) return "Phase 3: Flagging unverified transfers into Review Queue";
-    if (activeTab === 3) return "Phase 4: Verified transactions committed to permanent ledger";
-    if (v < 0.25) return "Phase 1: Ingesting bank statement PDF";
-    if (v < 0.52) return "Phase 2: Extracting & tokenizing transaction rows";
-    if (v < 0.76) return "Phase 3: Flagging unverified transfers into Review Queue";
-    return "Phase 4: Verified transactions committed to permanent ledger";
-  });
-
-  // Calculate effective styles considering manual tab overrides
-  const effectiveDocOpacity = activeTab !== null ? 1 : scrollDocO;
-  const effectiveDocX       = activeTab !== null ? 0 : scrollDocX;
-  const effectiveDocTilt    = activeTab !== null ? 0 : scrollDocTilt;
-  const effectiveScanTop    = activeTab === 0 ? "50%" : scrollScanTop;
-
-  const effectiveReviewO    = activeTab === 2 || activeTab === 3 ? 1 : activeTab === 0 || activeTab === 1 ? 0 : scrollReviewO;
-  const effectiveReviewY    = activeTab !== null ? 0 : scrollReviewY;
-
-  const effectiveLedgerO    = activeTab === 3 ? 1 : activeTab === 0 || activeTab === 1 || activeTab === 2 ? 0.3 : scrollLedgerO;
-  const effectiveLedgerY    = activeTab !== null ? 0 : scrollLedgerY;
+  const [selectedTxn, setSelectedTxn] = useState(null);
 
   function toggleReview(id) {
     setReviewedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
+  const pendingCount = 2 - (reviewedItems[2] ? 1 : 0) - (reviewedItems[5] ? 1 : 0);
+  const approvedCount = 3 + (reviewedItems[2] ? 1 : 0) + (reviewedItems[5] ? 1 : 0);
+
   return (
     <section
-      className="border-y relative overflow-hidden"
+      className="border-y relative overflow-hidden py-12 sm:py-16 transition-colors duration-300"
       style={{
         borderColor: "var(--color-line)",
         background: "var(--color-paper-raised)",
       }}
     >
-      {/* Intro Header */}
-      <div className="mx-auto max-w-6xl px-6 pt-12 pb-6 sm:pt-14 sm:pb-6">
+      <div className="mx-auto max-w-6xl px-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true, margin: "-5% 0px" }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-6% 0px" }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8"
         >
           <div>
-            <p
-              className="font-figure text-[10px] uppercase tracking-[0.3em] mb-2"
-              style={{ color: "var(--color-horizon)" }}
-            >
-              Scene 2 — Statement Intelligence
-            </p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 mb-2 text-[11px] font-figure uppercase tracking-widest font-semibold" style={{ background: "var(--color-horizon-dim)", color: isLight ? "#92400e" : "var(--color-horizon)" }}>
+              <FileText className="h-3 w-3" />
+              <span>Scene 2 — Statement Intelligence</span>
+            </div>
             <h2
               className="font-screamer text-4xl sm:text-5xl lg:text-6xl"
               style={{ color: "var(--color-ink)" }}
@@ -281,158 +267,168 @@ function SceneStatement() {
             </p>
           </div>
         </motion.div>
-      </div>
 
-      {/* Tall Scroll Pipeline Container */}
-      <div ref={containerRef} style={{ height: "165vh", position: "relative" }}>
-        <div
-          style={{
-            position: "sticky",
-            top: "6vh",
-            minHeight: "78vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-          className="mx-auto max-w-6xl px-6 py-3"
-        >
-          {/* Status Tracker & Interactive Stage Filter Tabs */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4" style={{ borderColor: "var(--color-line)" }}>
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--color-horizon)" }} />
-                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--color-horizon)" }} />
-              </span>
-              <motion.span className="font-figure text-xs tracking-wider uppercase font-medium" style={{ color: "var(--color-horizon)" }}>
-                {stepText}
-              </motion.span>
-            </div>
-
-            {/* Interactive Stage Tab Selectors */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              {[
-                { id: null, label: "Live Scroll" },
-                { id: 0, label: "1. Scan PDF" },
-                { id: 1, label: "2. Extracted" },
-                { id: 2, label: "3. Review Queue (2)" },
-                { id: 3, label: "4. Clean Ledger" },
-              ].map((tab) => (
-                <button
-                  key={String(tab.id)}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-figure whitespace-nowrap transition-colors border ${
-                    activeTab === tab.id
-                      ? "border-horizon text-horizon bg-horizon-dim font-semibold"
-                      : "border-line text-ink-soft hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        {/* Stage Filter Tabs */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-4" style={{ borderColor: "var(--color-line)" }}>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--color-horizon)" }} />
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--color-horizon)" }} />
+            </span>
+            <span className="font-figure text-xs tracking-wider uppercase font-semibold" style={{ color: "var(--color-horizon)" }}>
+              {activeTab === "all" ? "Live Dual-Pass Ingestion" : activeTab === "scan" ? "Phase 1: OCR Extraction" : activeTab === "review" ? "Phase 2: Review Queue" : "Phase 3: Ledger Records"}
+            </span>
           </div>
 
-          {/* Interactive Visual Transformation Stage */}
-          <div className="grid gap-8 lg:grid-cols-12 items-center relative">
-            {/* Left Column: Bank Statement Document with Laser Scan */}
-            <div className="lg:col-span-5 flex justify-center">
-              <motion.div
-                style={{
-                  x: effectiveDocX,
-                  opacity: effectiveDocOpacity,
-                  rotateY: effectiveDocTilt,
-                  transformPerspective: 1000,
-                }}
-                className="w-full max-w-md rounded-2xl border p-4 shadow-2xl relative overflow-hidden group"
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {[
+              { id: "all", label: "Full Flow" },
+              { id: "scan", label: "1. Scan PDF" },
+              { id: "review", label: `2. Review Queue (${pendingCount})` },
+              { id: "ledger", label: `3. Clean Ledger (${approvedCount})` },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-figure whitespace-nowrap transition-all border cursor-pointer font-medium ${
+                  activeTab === tab.id
+                    ? "border-horizon text-horizon font-semibold"
+                    : "border-line text-ink-soft hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+                style={activeTab === tab.id ? { background: "var(--color-horizon-dim)" } : undefined}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-12 items-start">
+          {/* Left Column: Bank Statement Document with Laser Scan */}
+          {(activeTab === "all" || activeTab === "scan") && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true }}
+              className={`${activeTab === "scan" ? "lg:col-span-12 max-w-2xl mx-auto" : "lg:col-span-5"}`}
+            >
+              <div
+                className="w-full rounded-2xl border p-4 shadow-sm relative overflow-hidden"
                 style={{
                   borderColor: "var(--color-line)",
                   background: "var(--color-paper)",
                 }}
               >
-                <div
-                  className="rounded-xl border p-4 font-editorial relative overflow-hidden"
+                {/* Laser Scan Line with dynamic glow */}
+                <motion.div
+                  className="absolute inset-x-0 h-0.5 pointer-events-none z-10"
+                  animate={{ top: ["4%", "96%", "4%"] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                   style={{
-                    borderColor: "var(--color-line)",
-                    background: "var(--color-paper)",
+                    background: isLight
+                      ? "linear-gradient(90deg, transparent, #b47818, #d9921b, transparent)"
+                      : "linear-gradient(90deg, transparent, var(--color-horizon), #c9a227, transparent)",
+                    boxShadow: isLight
+                      ? "0 0 12px rgba(180, 120, 24, 0.45)"
+                      : "0 0 16px rgba(214, 255, 98, 0.6)",
                   }}
-                >
-                  {/* Laser Scan Line with dynamic glow */}
-                  <motion.div
-                    className="absolute inset-x-0 h-1 pointer-events-none z-10"
-                    style={{
-                      top: effectiveScanTop,
-                      background: "linear-gradient(90deg, transparent, var(--color-horizon), #c9a227, transparent)",
-                      boxShadow: "0 0 16px var(--color-horizon), 0 0 30px rgba(214,255,98,0.4)",
-                    }}
-                  />
+                />
 
-                  {/* Document Header */}
-                  <div className="flex items-start justify-between border-b pb-3 mb-3" style={{ borderColor: "var(--color-line)" }}>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-horizon" />
-                      <div>
-                        <p className="font-figure text-xs font-bold uppercase tracking-widest text-ink">HDFC Bank Ltd</p>
-                        <p className="font-figure text-[10px] text-ink-soft">A/C: *******8291 · October Statement</p>
-                      </div>
+                {/* Document Header */}
+                <div className="flex items-start justify-between border-b pb-3 mb-3" style={{ borderColor: "var(--color-line)" }}>
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-horizon" />
+                    <div>
+                      <p className="font-figure text-xs font-bold uppercase tracking-widest text-ink">HDFC Bank Ltd</p>
+                      <p className="font-figure text-[10px] text-ink-soft">A/C: *******8291 · October Statement</p>
                     </div>
-                    <span className="rounded-md px-2 py-0.5 font-figure text-[9px] uppercase tracking-wide bg-horizon-dim text-horizon font-semibold">
-                      PDF Verified
-                    </span>
                   </div>
+                  <span
+                    className="rounded-md px-2 py-0.5 font-figure text-[9px] uppercase tracking-wide font-semibold"
+                    style={{
+                      background: "var(--color-horizon-dim)",
+                      color: isLight ? "#92400e" : "var(--color-horizon)",
+                    }}
+                  >
+                    PDF Verified
+                  </span>
+                </div>
 
-                  {/* Document Raw Rows */}
-                  <div className="space-y-2">
-                    {SAMPLE_TXNS.map((t) => (
+                {/* Document Raw Rows */}
+                <div className="space-y-1.5">
+                  {SAMPLE_TXNS.map((t) => {
+                    const isSelected = selectedTxn === t.id;
+                    return (
                       <div
                         key={t.id}
-                        className="flex items-center justify-between text-xs py-1.5 border-b last:border-0 font-figure transition-colors hover:bg-black/5 dark:hover:bg-white/5 px-1.5 rounded"
-                        style={{ borderColor: "var(--color-line)" }}
+                        onClick={() => setSelectedTxn(isSelected ? null : t.id)}
+                        className={`flex items-center justify-between text-xs py-2 px-2 rounded cursor-pointer transition-all border font-figure ${
+                          isSelected
+                            ? "border-horizon bg-horizon/10 font-medium"
+                            : "border-transparent hover:bg-black/5 dark:hover:bg-white/5"
+                        }`}
                       >
                         <div>
                           <p className="text-ink text-[11px] font-medium truncate max-w-[180px]">{t.desc}</p>
                           <p className="text-[9px] text-ink-soft">{t.date}</p>
                         </div>
-                        <span className="text-ink font-semibold">{t.amount}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-ink font-semibold">{t.amount}</span>
+                          {t.type === "review" && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" title="Review needed" />
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 pt-2 border-t flex justify-between items-center text-[10px] font-figure text-ink-soft" style={{ borderColor: "var(--color-line)" }}>
-                    <span>5 entries identified</span>
-                    <span className="flex items-center gap-1" style={{ color: "var(--color-horizon)" }}>
-                      <span className="h-1.5 w-1.5 rounded-full bg-horizon animate-ping" />
-                      Auto-extracting...
-                    </span>
-                  </div>
+                    );
+                  })}
                 </div>
-              </motion.div>
-            </div>
 
-            {/* Right Column: Split Outcome (Review Queue vs Verified Ledger) */}
-            <div className="lg:col-span-7 flex flex-col gap-4">
-              {/* Divergence 1: Review Queue (Amber Warning Card with Interactive Decisioning) */}
-              <motion.div
-                style={{
-                  y: effectiveReviewY,
-                  opacity: effectiveReviewO,
-                }}
-              >
+                <div className="mt-3 pt-2 border-t flex justify-between items-center text-[10px] font-figure text-ink-soft" style={{ borderColor: "var(--color-line)" }}>
+                  <span>5 entries tokenized</span>
+                  <span className="flex items-center gap-1 font-medium" style={{ color: "var(--color-horizon)" }}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-horizon animate-ping" />
+                    OCR Dual-Pass Active
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Right Column: Split Outcome (Review Queue vs Verified Ledger) */}
+          {(activeTab === "all" || activeTab === "review" || activeTab === "ledger") && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true }}
+              className={`flex flex-col gap-4 ${activeTab === "all" ? "lg:col-span-7" : "lg:col-span-12 max-w-3xl mx-auto"}`}
+            >
+              {/* Divergence 1: Review Queue (Amber Warning Card) */}
+              {(activeTab === "all" || activeTab === "review") && (
                 <div
-                  className="rounded-2xl border p-4 shadow-sm relative overflow-hidden transition-all"
+                  className="rounded-2xl border p-4 shadow-xs relative overflow-hidden transition-all"
                   style={{
-                    borderColor: "rgba(212,168,38,0.45)",
-                    background: "rgba(212,168,38,0.07)",
+                    borderColor: isLight ? "rgba(217, 146, 27, 0.35)" : "rgba(214, 255, 98, 0.25)",
+                    background: isLight ? "rgba(254, 243, 199, 0.45)" : "rgba(214, 255, 98, 0.04)",
                   }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-400" />
-                      <h4 className="font-screamer text-sm tracking-wider uppercase" style={{ color: "#e5c76b" }}>
-                        Action Required · Review Queue ({2 - (reviewedItems[2] ? 1 : 0) - (reviewedItems[5] ? 1 : 0)} Pending)
+                      <AlertTriangle className="h-4 w-4" style={{ color: isLight ? "#b45309" : "#fbbf24" }} />
+                      <h4 className="font-screamer text-sm tracking-wider uppercase font-bold" style={{ color: isLight ? "#92400e" : "#e5c76b" }}>
+                        Action Required · Review Queue ({pendingCount} Pending)
                       </h4>
                     </div>
-                    <span className="font-figure text-[10px] text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                    <span
+                      className="font-figure text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      style={{
+                        background: isLight ? "rgba(217, 146, 27, 0.15)" : "rgba(214, 255, 98, 0.12)",
+                        color: isLight ? "#92400e" : "#d6ff62",
+                      }}
+                    >
                       Click to Test Action
                     </span>
                   </div>
@@ -445,16 +441,24 @@ function SceneStatement() {
                           key={r.id}
                           className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl px-3.5 py-2.5 text-xs border gap-2 transition-all"
                           style={{
-                            background: isApproved ? "rgba(16,217,138,0.08)" : "var(--color-paper-raised)",
-                            borderColor: isApproved ? "rgba(16,217,138,0.4)" : "rgba(212,168,38,0.3)",
+                            background: isApproved
+                              ? isLight ? "rgba(240, 253, 244, 0.9)" : "rgba(16, 217, 138, 0.08)"
+                              : "var(--color-paper-raised)",
+                            borderColor: isApproved
+                              ? isLight ? "rgba(22, 163, 74, 0.4)" : "rgba(16, 217, 138, 0.4)"
+                              : "var(--color-line)",
                           }}
                         >
                           <div>
                             <p className="font-editorial text-ink font-medium flex items-center gap-1.5">
                               {r.desc}
-                              {isApproved && <span className="text-emerald-400 text-[10px]">✓ Approved</span>}
+                              {isApproved && (
+                                <span className="font-figure font-semibold text-[10px]" style={{ color: isLight ? "#15803d" : "#10d98a" }}>
+                                  ✓ Approved
+                                </span>
+                              )}
                             </p>
-                            <p className="text-[10px] font-figure text-amber-400 mt-0.5">
+                            <p className="text-[10px] font-figure mt-0.5" style={{ color: isApproved ? (isLight ? "#15803d" : "#10d98a") : (isLight ? "#b45309" : "#fbbf24") }}>
                               {isApproved ? "Committed to ledger" : "Ambiguous transfer — Needs category"}
                             </p>
                           </div>
@@ -463,13 +467,25 @@ function SceneStatement() {
                             <button
                               type="button"
                               onClick={() => toggleReview(r.id)}
-                              className={`rounded px-2.5 py-1 text-[10px] uppercase font-semibold transition-all ${
-                                isApproved
-                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                                  : "bg-amber-400/20 text-amber-300 border border-amber-400/40 hover:bg-amber-400/30"
-                              }`}
+                              className="rounded px-2.5 py-1 text-[10px] uppercase font-bold transition-all cursor-pointer flex items-center gap-1"
+                              style={{
+                                background: isApproved
+                                  ? isLight ? "rgba(22, 163, 74, 0.15)" : "rgba(16, 217, 138, 0.2)"
+                                  : isLight ? "rgba(217, 146, 27, 0.15)" : "rgba(251, 191, 36, 0.2)",
+                                color: isApproved
+                                  ? isLight ? "#15803d" : "#10d98a"
+                                  : isLight ? "#92400e" : "#fbbf24",
+                                border: `1px solid ${isApproved ? (isLight ? "rgba(22, 163, 74, 0.3)" : "rgba(16, 217, 138, 0.4)") : (isLight ? "rgba(217, 146, 27, 0.35)" : "rgba(251, 191, 36, 0.4)")}`,
+                              }}
                             >
-                              {isApproved ? "Approved ✓" : "Confirm Category"}
+                              {isApproved ? (
+                                <>
+                                  <Check className="h-3 w-3" />
+                                  <span>Approved</span>
+                                </>
+                              ) : (
+                                <span>Confirm Category</span>
+                              )}
                             </button>
                           </div>
                         </div>
@@ -477,17 +493,12 @@ function SceneStatement() {
                     })}
                   </div>
                 </div>
-              </motion.div>
+              )}
 
-              {/* Divergence 2: Approved Ledger (Lime Success Card) */}
-              <motion.div
-                style={{
-                  y: effectiveLedgerY,
-                  opacity: effectiveLedgerO,
-                }}
-              >
+              {/* Divergence 2: Approved Ledger (Success Card) */}
+              {(activeTab === "all" || activeTab === "ledger") && (
                 <div
-                  className="rounded-2xl border p-4 shadow-sm"
+                  className="rounded-2xl border p-4 shadow-xs"
                   style={{
                     borderColor: "var(--color-line)",
                     background: "var(--color-paper)",
@@ -495,12 +506,12 @@ function SceneStatement() {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      <h4 className="font-screamer text-sm tracking-wider uppercase text-ink">
-                        Verified Ledger Records ({3 + (reviewedItems[2] ? 1 : 0) + (reviewedItems[5] ? 1 : 0)} Committed)
+                      <CheckCircle2 className="h-4 w-4" style={{ color: isLight ? "#15803d" : "#10d98a" }} />
+                      <h4 className="font-screamer text-sm tracking-wider uppercase text-ink font-bold">
+                        Verified Ledger Records ({approvedCount} Committed)
                       </h4>
                     </div>
-                    <span className="font-figure text-[10px] font-medium" style={{ color: "var(--color-horizon)" }}>
+                    <span className="font-figure text-[10px] font-semibold" style={{ color: "var(--color-horizon)" }}>
                       ✓ Auto-Categorised
                     </span>
                   </div>
@@ -521,10 +532,10 @@ function SceneStatement() {
                         </div>
                         <div className="flex items-center gap-2 font-figure">
                           <span
-                            className="rounded px-2 py-0.5 text-[9px] uppercase tracking-wide font-medium"
+                            className="rounded px-2 py-0.5 text-[9px] uppercase tracking-wide font-semibold"
                             style={{
                               background: "var(--color-horizon-dim)",
-                              color: "var(--color-horizon)",
+                              color: isLight ? "#92400e" : "var(--color-horizon)",
                             }}
                           >
                             {a.cat}
@@ -535,9 +546,9 @@ function SceneStatement() {
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            </div>
-          </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
     </section>
@@ -554,7 +565,8 @@ const FINSCORE_PILLARS = [
     label: "Savings Rate",
     score: 68,
     status: "Healthy (31% saved)",
-    color: "#d6ff62",
+    colorLight: "#15803d",
+    colorDark: "#d6ff62",
     formula: "Savings / Gross Inflows = 31.2% (Benchmark: >20%)",
   },
   {
@@ -562,7 +574,8 @@ const FINSCORE_PILLARS = [
     label: "Emergency Fund",
     score: 54,
     status: "3.8 months runway",
-    color: "#c9a227",
+    colorLight: "#b45309",
+    colorDark: "#c9a227",
     formula: "Liquid Bank Cash / Monthly Expenses = 3.8 months (Target: 6 months)",
   },
   {
@@ -570,7 +583,8 @@ const FINSCORE_PILLARS = [
     label: "Debt Load",
     score: 85,
     status: "Low DTI (12%)",
-    color: "#10d98a",
+    colorLight: "#15803d",
+    colorDark: "#10d98a",
     formula: "Debt Servicing EMI / Total Income = 12% (Benchmark: <30%)",
   },
   {
@@ -578,7 +592,8 @@ const FINSCORE_PILLARS = [
     label: "Investment Mix",
     score: 72,
     status: "Balanced Equity/Gold",
-    color: "#d6ff62",
+    colorLight: "#b47818",
+    colorDark: "#d6ff62",
     formula: "Asset Diversification Index: Equities 55%, MF 25%, Gold 15%, FD 5%",
   },
   {
@@ -586,166 +601,46 @@ const FINSCORE_PILLARS = [
     label: "Income Stability",
     score: 82,
     status: "Consistent salary",
-    color: "#c9a227",
+    colorLight: "#b45309",
+    colorDark: "#c9a227",
     formula: "Variance coefficient of verified monthly credits over trailing 6 months",
   },
 ];
 
-function ScoreRadialGauge({ progress, selectedPillar, simulated }) {
-  const R = 100;
-  const CIRC = 2 * Math.PI * R;
-  const TARGET_SCORE = selectedPillar ? selectedPillar.score : (simulated ? 84 : 74);
-
-  const arcFill = useTransform(progress, [0.08, 0.65], [0, 1]);
-  const numberVal = useTransform(progress, [0.08, 0.65], [0, TARGET_SCORE]);
-  const strokeDash = useTransform(arcFill, (v) => CIRC - v * (TARGET_SCORE / 100) * CIRC);
-  const scoreText = useTransform(numberVal, (v) => Math.round(v).toString());
-
-  return (
-    <div className="relative flex items-center justify-center">
-      {/* Background Pulse Glow */}
-      <div
-        className="absolute rounded-full pointer-events-none transition-all duration-500"
-        style={{
-          width: 260,
-          height: 260,
-          background: simulated
-            ? "radial-gradient(circle, rgba(16,217,138,0.25) 0%, rgba(214,255,98,0.12) 50%, transparent 70%)"
-            : "radial-gradient(circle, rgba(214,255,98,0.18) 0%, rgba(212,168,38,0.08) 50%, transparent 70%)",
-          filter: "blur(28px)",
-        }}
-      />
-
-      <svg width="260" height="260" viewBox="0 0 260 260" aria-label="FinScore 74 out of 100">
-        <defs>
-          <linearGradient id="finScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#c9a227" />
-            <stop offset="45%" stopColor={simulated ? "#10d98a" : "#e5c76b"} />
-            <stop offset="85%" stopColor={simulated ? "#10d98a" : "#d6ff62"} />
-          </linearGradient>
-        </defs>
-
-        {/* Circular gauge track */}
-        <circle
-          cx="130"
-          cy="130"
-          r={R}
-          fill="none"
-          stroke="var(--color-line)"
-          strokeWidth="14"
-          opacity="0.6"
-        />
-
-        {/* Concentric tick marks */}
-        {Array.from({ length: 36 }, (_, i) => {
-          const angle = (i / 36) * Math.PI * 2 - Math.PI / 2;
-          const inner = R - 11;
-          const outer = R - 3;
-          const x1 = Math.round((130 + inner * Math.cos(angle)) * 100) / 100;
-          const y1 = Math.round((130 + inner * Math.sin(angle)) * 100) / 100;
-          const x2 = Math.round((130 + outer * Math.cos(angle)) * 100) / 100;
-          const y2 = Math.round((130 + outer * Math.sin(angle)) * 100) / 100;
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="var(--color-line)"
-              strokeWidth="1.2"
-              opacity="0.8"
-            />
-          );
-        })}
-
-        {/* Dynamic Arc Fill */}
-        <motion.circle
-          cx="130"
-          cy="130"
-          r={R}
-          fill="none"
-          stroke="url(#finScoreGrad)"
-          strokeWidth="14"
-          strokeLinecap="round"
-          strokeDasharray={CIRC}
-          style={{ strokeDashoffset: strokeDash }}
-          transform="rotate(-90 130 130)"
-        />
-
-        {/* Center Numbers */}
-        <motion.text
-          x="130"
-          y="120"
-          textAnchor="middle"
-          style={{
-            fontFamily: "var(--font-display)",
-            fill: "var(--color-ink)",
-            fontSize: 56,
-            fontWeight: 300,
-          }}
-        >
-          {selectedPillar ? selectedPillar.score : (simulated ? "84" : scoreText)}
-        </motion.text>
-        <text
-          x="130"
-          y="142"
-          textAnchor="middle"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fill: "var(--color-ink-soft)",
-            fontSize: 12,
-            letterSpacing: 2,
-          }}
-        >
-          / 100
-        </text>
-        <text
-          x="130"
-          y="164"
-          textAnchor="middle"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fill: simulated ? "#10d98a" : "var(--color-horizon)",
-            fontSize: 10,
-            letterSpacing: 3,
-            fontWeight: 600,
-          }}
-        >
-          {selectedPillar
-            ? selectedPillar.label.toUpperCase()
-            : simulated
-            ? "EXCELLENT · +10 PTS"
-            : "GOOD · COMPOSITE"}
-        </text>
-      </svg>
-    </div>
-  );
-}
-
 function SceneFinScore() {
-  const outerRef = useRef(null);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [selectedPillar, setSelectedPillar] = useState(null);
-  const [simulated, setSimulated] = useState(false);
+  const [simMode, setSimMode] = useState("none"); // "none" | "emergency" | "debt"
+  const gaugeRef = useRef(null);
+  const isInView = useInView(gaugeRef, { once: true, margin: "-10% 0px" });
 
-  const { scrollYProgress } = useScroll({ target: outerRef, offset: ["start center", "end end"] });
-  const smooth = useSpring(scrollYProgress, { stiffness: 85, damping: 25 });
+  const R = 95;
+  const CIRC = 2 * Math.PI * R;
+  const targetScore = selectedPillar
+    ? selectedPillar.score
+    : simMode === "emergency"
+    ? 84
+    : simMode === "debt"
+    ? 81
+    : 74;
+
+  const strokeOffset = isInView ? CIRC - (targetScore / 100) * CIRC : CIRC;
 
   return (
-    <section className="border-b relative" style={{ borderColor: "var(--color-line)" }}>
-      <div className="mx-auto max-w-6xl px-6 pt-12 pb-6 sm:pt-14 sm:pb-6">
+    <section className="border-b relative py-12 sm:py-16 transition-colors duration-300" style={{ borderColor: "var(--color-line)" }}>
+      <div className="mx-auto max-w-6xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true, margin: "-5% 0px" }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-6% 0px" }}
+          className="mb-8"
         >
-          <p
-            className="font-figure text-[10px] uppercase tracking-[0.3em] mb-3"
-            style={{ color: "var(--color-horizon)" }}
-          >
-            Scene 3 — FinScore
-          </p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 mb-2 text-[11px] font-figure uppercase tracking-widest font-semibold" style={{ background: "var(--color-horizon-dim)", color: isLight ? "#92400e" : "var(--color-horizon)" }}>
+            <TrendingUp className="h-3 w-3" />
+            <span>Scene 3 — FinScore</span>
+          </div>
           <h2
             className="font-screamer text-4xl sm:text-5xl lg:text-6xl"
             style={{ color: "var(--color-ink)" }}
@@ -759,132 +654,300 @@ function SceneFinScore() {
             debt coverage, and portfolio diversification. Click any metric to inspect its formula.
           </p>
         </motion.div>
-      </div>
 
-      <div ref={outerRef} style={{ height: "140vh" }}>
-        <div
-          style={{ position: "sticky", top: "8vh", minHeight: "76vh" }}
-          className="flex items-center"
-        >
-          <div className="mx-auto max-w-6xl w-full px-6 grid gap-12 lg:grid-cols-12 items-center">
-            {/* Left: Animated Radial Gauge & Interactive Strategy Simulator */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center">
-              <ScoreRadialGauge progress={smooth} selectedPillar={selectedPillar} simulated={simulated} />
+        <div className="grid gap-10 lg:grid-cols-12 items-center">
+          {/* Left: Animated Radial Gauge & Interactive Strategy Simulator */}
+          <div ref={gaugeRef} className="lg:col-span-5 flex flex-col items-center justify-center">
+            <div className="relative flex items-center justify-center">
+              {/* Background Glow */}
+              <div
+                className="absolute rounded-full pointer-events-none transition-all duration-500"
+                style={{
+                  width: 240,
+                  height: 240,
+                  background: simMode !== "none"
+                    ? (isLight ? "radial-gradient(circle, rgba(22, 163, 74, 0.18) 0%, transparent 70%)" : "radial-gradient(circle, rgba(16, 217, 138, 0.25) 0%, transparent 70%)")
+                    : (isLight ? "radial-gradient(circle, rgba(217, 146, 27, 0.15) 0%, transparent 70%)" : "radial-gradient(circle, rgba(214, 255, 98, 0.18) 0%, transparent 70%)"),
+                  filter: "blur(24px)",
+                }}
+              />
 
-              {/* Strategy Simulator Trigger Button */}
+              <svg width="240" height="240" viewBox="0 0 240 240" aria-label="FinScore">
+                <defs>
+                  <linearGradient id="finScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={isLight ? "#d9921b" : "#c9a227"} />
+                    <stop offset="60%" stopColor={simMode !== "none" ? (isLight ? "#15803d" : "#10d98a") : (isLight ? "#b47818" : "#d6ff62")} />
+                    <stop offset="100%" stopColor={simMode !== "none" ? (isLight ? "#15803d" : "#10d98a") : (isLight ? "#b47818" : "#d6ff62")} />
+                  </linearGradient>
+                </defs>
+
+                {/* Circular gauge track */}
+                <circle
+                  cx="120"
+                  cy="120"
+                  r={R}
+                  fill="none"
+                  stroke="var(--color-line)"
+                  strokeWidth="12"
+                  opacity="0.6"
+                />
+
+                {/* Concentric tick marks */}
+                {Array.from({ length: 32 }, (_, i) => {
+                  const angle = (i / 32) * Math.PI * 2 - Math.PI / 2;
+                  const inner = R - 10;
+                  const outer = R - 2;
+                  const x1 = Math.round((120 + inner * Math.cos(angle)) * 100) / 100;
+                  const y1 = Math.round((120 + inner * Math.sin(angle)) * 100) / 100;
+                  const x2 = Math.round((120 + outer * Math.cos(angle)) * 100) / 100;
+                  const y2 = Math.round((120 + outer * Math.sin(angle)) * 100) / 100;
+                  return (
+                    <line
+                      key={i}
+                      x1={x1}
+                      y1={y1}
+                      x2={x2}
+                      y2={y2}
+                      stroke="var(--color-line)"
+                      strokeWidth="1.2"
+                      opacity="0.8"
+                    />
+                  );
+                })}
+
+                {/* Dynamic Arc Fill */}
+                <motion.circle
+                  cx="120"
+                  cy="120"
+                  r={R}
+                  fill="none"
+                  stroke="url(#finScoreGrad)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  strokeDasharray={CIRC}
+                  initial={{ strokeDashoffset: CIRC }}
+                  animate={{ strokeDashoffset: strokeOffset }}
+                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                  transform="rotate(-90 120 120)"
+                />
+
+                {/* Center Numbers */}
+                <text
+                  x="120"
+                  y="112"
+                  textAnchor="middle"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fill: "var(--color-ink)",
+                    fontSize: 50,
+                    fontWeight: 700,
+                  }}
+                >
+                  {targetScore}
+                </text>
+                <text
+                  x="120"
+                  y="134"
+                  textAnchor="middle"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fill: "var(--color-ink-soft)",
+                    fontSize: 11,
+                    letterSpacing: 2,
+                  }}
+                >
+                  / 100
+                </text>
+                <text
+                  x="120"
+                  y="154"
+                  textAnchor="middle"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fill: simMode !== "none" ? (isLight ? "#15803d" : "#10d98a") : "var(--color-horizon)",
+                    fontSize: 9,
+                    letterSpacing: 2.5,
+                    fontWeight: 700,
+                  }}
+                >
+                  {selectedPillar
+                    ? selectedPillar.label.toUpperCase()
+                    : simMode === "emergency"
+                    ? "EXCELLENT · +10 PTS"
+                    : simMode === "debt"
+                    ? "OPTIMIZED · +7 PTS"
+                    : "GOOD · COMPOSITE"}
+                </text>
+              </svg>
+            </div>
+
+            {/* Interactive Strategy Simulators */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setSelectedPillar(null);
-                  setSimulated(!simulated);
+                  setSimMode(simMode === "emergency" ? "none" : "emergency");
                 }}
-                className={`mt-4 px-3.5 py-1.5 rounded-full text-xs font-figure border flex items-center gap-2 transition-all shadow-sm ${
-                  simulated
-                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-400 font-semibold"
-                    : "border-line text-ink-soft hover:text-ink hover:border-horizon"
-                }`}
+                className="px-3.5 py-1.5 rounded-full text-xs font-figure border flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer font-medium"
+                style={{
+                  borderColor: simMode === "emergency" ? (isLight ? "#15803d" : "#10d98a") : "var(--color-line)",
+                  background: simMode === "emergency"
+                    ? (isLight ? "rgba(22, 163, 74, 0.12)" : "rgba(16, 217, 138, 0.15)")
+                    : "var(--color-paper-raised)",
+                  color: simMode === "emergency"
+                    ? (isLight ? "#15803d" : "#10d98a")
+                    : "var(--color-ink)",
+                }}
               >
-                <Sparkles className="h-3.5 w-3.5 text-horizon" />
-                <span>{simulated ? "Active: +₹25k Emergency Reserve (Reset)" : "Simulate: Add ₹25k Reserve (+10 pts)"}</span>
+                <Sparkles className="h-3 w-3" style={{ color: "var(--color-horizon)" }} />
+                <span>{simMode === "emergency" ? "Active: +₹25k Reserve" : "+₹25k Reserve (+10)"}</span>
               </button>
 
-              {selectedPillar && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedPillar(null)}
-                  className="mt-2 text-[11px] font-figure text-horizon hover:underline"
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPillar(null);
+                  setSimMode(simMode === "debt" ? "none" : "debt");
+                }}
+                className="px-3.5 py-1.5 rounded-full text-xs font-figure border flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer font-medium"
+                style={{
+                  borderColor: simMode === "debt" ? (isLight ? "#15803d" : "#10d98a") : "var(--color-line)",
+                  background: simMode === "debt"
+                    ? (isLight ? "rgba(22, 163, 74, 0.12)" : "rgba(16, 217, 138, 0.15)")
+                    : "var(--color-paper-raised)",
+                  color: simMode === "debt"
+                    ? (isLight ? "#15803d" : "#10d98a")
+                    : "var(--color-ink)",
+                }}
+              >
+                <Zap className="h-3 w-3 text-amber-500" />
+                <span>{simMode === "debt" ? "Active: Clear Debt" : "Clear Card Debt (+7)"}</span>
+              </button>
+            </div>
+
+            {selectedPillar && (
+              <button
+                type="button"
+                onClick={() => setSelectedPillar(null)}
+                className="mt-2 text-[11px] font-figure text-horizon hover:underline cursor-pointer"
+              >
+                Reset to Composite View
+              </button>
+            )}
+          </div>
+
+          {/* Right: Detailed Component Progress Breakdown (Interactive) */}
+          <div className="lg:col-span-7 space-y-3">
+            <div className="flex items-center justify-between mb-3">
+              <p
+                className="font-figure text-[10px] uppercase tracking-[0.25em] font-semibold"
+                style={{ color: "var(--color-horizon)" }}
+              >
+                Composite Sub-Scores (Click to inspect formula)
+              </p>
+              {simMode === "emergency" && (
+                <span
+                  className="font-figure text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: isLight ? "rgba(22, 163, 74, 0.12)" : "rgba(16, 217, 138, 0.12)",
+                    color: isLight ? "#15803d" : "#10d98a",
+                  }}
                 >
-                  Reset to Composite View
-                </button>
+                  Runway upgraded: 3.8 → 5.4 mos
+                </span>
+              )}
+              {simMode === "debt" && (
+                <span
+                  className="font-figure text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: isLight ? "rgba(22, 163, 74, 0.12)" : "rgba(16, 217, 138, 0.12)",
+                    color: isLight ? "#15803d" : "#10d98a",
+                  }}
+                >
+                  DTI lowered: 12% → 3%
+                </span>
               )}
             </div>
 
-            {/* Right: Detailed Component Progress Breakdown (Interactive) */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <p
-                  className="font-figure text-[10px] uppercase tracking-[0.25em]"
-                  style={{ color: "var(--color-horizon)" }}
-                >
-                  Composite Sub-Scores (Click to inspect formula)
-                </p>
-                {simulated && (
-                  <span className="font-figure text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                    Runway upgraded: 3.8 → 5.4 mos
-                  </span>
-                )}
-              </div>
+            <div className="space-y-2.5">
+              {FINSCORE_PILLARS.map((p, i) => {
+                const isSelected = selectedPillar?.id === p.id;
+                let currentScore = p.score;
+                let currentStatus = p.status;
+                let currentColor = isLight ? p.colorLight : p.colorDark;
 
-              <div className="space-y-3">
-                {FINSCORE_PILLARS.map((p, i) => {
-                  const isSelected = selectedPillar?.id === p.id;
-                  const currentScore = (simulated && p.id === "emergency") ? 88 : p.score;
-                  const currentStatus = (simulated && p.id === "emergency") ? "5.4 months runway (Boosted)" : p.status;
-                  const currentColor = (simulated && p.id === "emergency") ? "#10d98a" : p.color;
+                if (simMode === "emergency" && p.id === "emergency") {
+                  currentScore = 88;
+                  currentStatus = "5.4 months runway (Boosted)";
+                  currentColor = isLight ? "#15803d" : "#10d98a";
+                } else if (simMode === "debt" && p.id === "debt") {
+                  currentScore = 96;
+                  currentStatus = "Minimal DTI (3% Debt)";
+                  currentColor = isLight ? "#15803d" : "#10d98a";
+                }
 
-                  return (
-                    <motion.div
-                      key={p.label}
-                      initial={{ opacity: 0, x: 24 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                      viewport={{ once: true }}
-                      onClick={() => setSelectedPillar(isSelected ? null : p)}
-                      className={`rounded-xl border p-3.5 cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-horizon ring-1 ring-horizon bg-white/[0.04]"
-                          : "hover:border-white/30"
-                      }`}
-                      style={{
-                        background: "var(--color-paper-raised)",
-                        borderColor: isSelected ? "var(--color-horizon)" : "var(--color-line)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-editorial text-ink font-medium text-sm flex items-center gap-1.5">
-                          <span>{p.label}</span>
-                          {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-horizon" />}
+                return (
+                  <motion.div
+                    key={p.label}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    viewport={{ once: true }}
+                    onClick={() => setSelectedPillar(isSelected ? null : p)}
+                    className="rounded-xl border p-3 cursor-pointer transition-all shadow-xs"
+                    style={{
+                      background: isSelected
+                        ? (isLight ? "rgba(217, 146, 27, 0.08)" : "rgba(214, 255, 98, 0.06)")
+                        : "var(--color-paper-raised)",
+                      borderColor: isSelected ? "var(--color-horizon)" : "var(--color-line)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-editorial text-ink font-medium text-sm flex items-center gap-1.5">
+                        <span>{p.label}</span>
+                        {isSelected && <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-horizon)" }} />}
+                      </span>
+                      <div className="flex items-center gap-2 font-figure">
+                        <span className="text-[11px] text-ink-soft">{currentStatus}</span>
+                        <span className="text-sm font-bold" style={{ color: currentColor }}>
+                          {currentScore}/100
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-figure text-[11px] text-ink-soft">{currentStatus}</span>
-                          <span className="font-figure text-sm font-semibold" style={{ color: currentColor }}>
-                            {currentScore}/100
-                          </span>
-                        </div>
                       </div>
+                    </div>
 
-                      {/* Progress Track */}
-                      <div className="h-1.5 w-full rounded-full" style={{ background: "var(--color-line)" }}>
-                        <motion.div
-                          className="h-full rounded-full transition-all duration-700"
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${currentScore}%` }}
-                          transition={{ delay: i * 0.1 + 0.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                          viewport={{ once: true }}
-                          style={{ background: currentColor, width: `${currentScore}%` }}
-                        />
-                      </div>
+                    {/* Progress Track */}
+                    <div className="h-1.5 w-full rounded-full" style={{ background: "var(--color-line)" }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${currentScore}%` }}
+                        transition={{ delay: i * 0.08 + 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        viewport={{ once: true }}
+                        style={{ background: currentColor, width: `${currentScore}%` }}
+                      />
+                    </div>
 
-                      {/* Explanatory Formula Card on Selection */}
-                      {isSelected && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="mt-2.5 pt-2 border-t border-line text-[11px] font-figure text-horizon flex items-center gap-1.5"
-                        >
-                          <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span>{p.formula}</span>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              <p className="text-[10px] font-editorial pt-2" style={{ color: "var(--color-ink-soft)", opacity: 0.6 }}>
-                Every component maps strictly to actual ledger rows. No fabricated benchmarks or black-box predictions.
-              </p>
+                    {/* Explanatory Formula Card on Selection */}
+                    {isSelected && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-2.5 pt-2 border-t text-[11px] font-figure flex items-center gap-1.5 font-medium"
+                        style={{ borderColor: "var(--color-line)", color: isLight ? "#92400e" : "var(--color-horizon)" }}
+                      >
+                        <HelpCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span>{p.formula}</span>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
+
+            <p className="text-[10px] font-editorial pt-2" style={{ color: "var(--color-ink-soft)" }}>
+              Every component maps strictly to actual ledger rows. No fabricated benchmarks or black-box predictions.
+            </p>
           </div>
         </div>
       </div>
@@ -893,12 +956,13 @@ function SceneFinScore() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/* Scene D — FinAI (Layered 3D Perspective Demo + Interactive Prompts)  */
+/* Scene D — FinAI (Layered Interface + Interactive Prompts)           */
 /* ═══════════════════════════════════════════════════════════════════ */
 
 const AI_SCENARIOS = [
   {
     id: "spending",
+    chip: "Spending Spike",
     prompt: "Why did my discretionary spending jump in October?",
     responses: [
       "In October, your Discretionary Spending rose by 22% compared to September (₹8,340 vs ₹6,820).",
@@ -913,11 +977,28 @@ const AI_SCENARIOS = [
     citation: "14 receipts matched · 0 hallucinations",
   },
   {
+    id: "affordability",
+    chip: "Can I buy a ₹75k Laptop?",
+    prompt: "Can I afford to purchase a ₹75,000 MacBook Air this month?",
+    responses: [
+      "Your available unallocated liquid savings is currently ₹1,42,000 across accounts.",
+      "Withdrawing ₹75,000 would drop your Emergency Runway from 3.8 to 1.8 months (below the 3.0M safety threshold).",
+      "Recommendation: Opt for a 6-month No-Cost EMI of ₹12,500/mo to preserve emergency reserves intact.",
+    ],
+    telemetry: [
+      { title: "Available Savings", val: "₹1,42,000", drift: "3 Accounts", bad: false },
+      { title: "Emergency Reserve", val: "₹1,12,500", drift: "Protected", bad: false },
+      { title: "Safe Cash Outlay", val: "₹29,500", drift: "Discretionary", bad: true },
+    ],
+    citation: "Checked against live liquidity balance & active EMIs",
+  },
+  {
     id: "emergency",
+    chip: "Emergency Runway",
     prompt: "How many months of emergency runway do I currently have?",
     responses: [
       "Based on trailing 3-month living expenses of ₹37,500/mo, your liquid cash of ₹1,42,000 gives 3.8 months of runway.",
-      "Your recommended minimum is 6 months (₹2,25,000).",
+      "Your recommended target is 6 months (₹2,25,000).",
       "FinAI suggests directing ₹15,000 from upcoming bonuses toward your liquid emergency fund.",
     ],
     telemetry: [
@@ -929,6 +1010,7 @@ const AI_SCENARIOS = [
   },
   {
     id: "portfolio",
+    chip: "Portfolio Drift",
     prompt: "Is my portfolio asset allocation drifting from targets?",
     responses: [
       "Your target equity allocation is 60%, but current equities have grown to 67% due to Nifty momentum.",
@@ -945,27 +1027,19 @@ const AI_SCENARIOS = [
 ];
 
 function SceneFinAI() {
-  const outerRef = useRef(null);
-  const terminalRef = useRef(null);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [selectedScenarioId, setSelectedScenarioId] = useState("spending");
   const [terminalTilt, setTerminalTilt] = useState({ x: 0, y: 0 });
-
-  const { scrollYProgress } = useScroll({ target: outerRef, offset: ["start center", "end end"] });
-  const smooth = useSpring(scrollYProgress, { stiffness: 85, damping: 25 });
-
-  const tiltX = useTransform(smooth, [0, 1], [4, -4]);
-  const tiltY = useTransform(smooth, [0, 1], [-4, 4]);
-
-  const inViewRef = useRef(null);
-  const inView = useInView(inViewRef, { once: true, margin: "-10% 0px" });
+  const terminalRef = useRef(null);
 
   const activeScenario = AI_SCENARIOS.find((s) => s.id === selectedScenarioId) || AI_SCENARIOS[0];
 
   function handleTerminalMouseMove(e) {
     if (!terminalRef.current) return;
     const rect = terminalRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 8;
-    const y = -((e.clientY - rect.top) / rect.height - 0.5) * 8;
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 6;
+    const y = -((e.clientY - rect.top) / rect.height - 0.5) * 6;
     setTerminalTilt({ x: y, y: x });
   }
 
@@ -975,25 +1049,24 @@ function SceneFinAI() {
 
   return (
     <section
-      className="border-b relative overflow-hidden"
+      className="border-b relative overflow-hidden py-12 sm:py-16 transition-colors duration-300"
       style={{
         borderColor: "var(--color-line)",
         background: "var(--color-paper-raised)",
       }}
     >
-      <div className="mx-auto max-w-6xl px-6 pt-12 pb-6 sm:pt-14 sm:pb-6">
+      <div className="mx-auto max-w-6xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true, margin: "-5% 0px" }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-6% 0px" }}
+          className="mb-8"
         >
-          <p
-            className="font-figure text-[10px] uppercase tracking-[0.3em] mb-3"
-            style={{ color: "var(--color-horizon)" }}
-          >
-            Scene 4 — FinAI
-          </p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 mb-2 text-[11px] font-figure uppercase tracking-widest font-semibold" style={{ background: "var(--color-horizon-dim)", color: isLight ? "#92400e" : "var(--color-horizon)" }}>
+            <Cpu className="h-3 w-3" />
+            <span>Scene 4 — FinAI</span>
+          </div>
           <h2
             className="font-screamer text-4xl sm:text-5xl lg:text-6xl"
             style={{ color: "var(--color-ink)" }}
@@ -1007,181 +1080,178 @@ function SceneFinAI() {
             why your money moved — without making generic guesses.
           </p>
         </motion.div>
-      </div>
 
-      <div ref={outerRef} style={{ height: "140vh" }}>
-        <div
-          style={{ position: "sticky", top: "8vh", minHeight: "76vh" }}
-          className="flex items-center"
-        >
-          <div ref={inViewRef} className="mx-auto max-w-5xl w-full px-6 grid gap-8 lg:grid-cols-12 items-center">
-            {/* Left 7 Cols: Floating AI Terminal Interface with 3D Tilt */}
-            <motion.div
-              ref={terminalRef}
-              onMouseMove={handleTerminalMouseMove}
-              onMouseLeave={handleTerminalMouseLeave}
+        <div className="grid gap-8 lg:grid-cols-12 items-center">
+          {/* Left 7 Cols: Floating AI Terminal Interface */}
+          <motion.div
+            ref={terminalRef}
+            onMouseMove={handleTerminalMouseMove}
+            onMouseLeave={handleTerminalMouseLeave}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            style={{
+              rotateX: terminalTilt.x,
+              rotateY: terminalTilt.y,
+              transformPerspective: 1200,
+            }}
+            className="lg:col-span-7 transition-transform duration-200 ease-out"
+          >
+            <div
+              className="rounded-2xl border p-5 shadow-sm relative overflow-hidden backdrop-blur-md"
               style={{
-                rotateX: terminalTilt.x || tiltX,
-                rotateY: terminalTilt.y || tiltY,
-                transformPerspective: 1200,
+                borderColor: "var(--color-line)",
+                background: "var(--color-paper)",
               }}
-              className="lg:col-span-7 transition-transform duration-200 ease-out"
             >
-              <div
-                className="rounded-2xl border p-5 shadow-2xl relative overflow-hidden backdrop-blur-md"
-                style={{
-                  borderColor: "var(--color-line)",
-                  background: "var(--color-paper)",
-                }}
-              >
-                {/* Window Chrome */}
-                <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: "var(--color-line)" }}>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
-                  </div>
-                  <span className="font-figure text-[10px] uppercase tracking-widest text-ink-soft flex items-center gap-1.5">
-                    <Cpu className="h-3 w-3 text-horizon" />
-                    FinAI Context Engine · Live Test
-                  </span>
+              {/* Window Chrome */}
+              <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: "var(--color-line)" }}>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
                 </div>
-
-                {/* Scenario Prompt Chips */}
-                <div className="mb-4 flex flex-wrap gap-1.5">
-                  {AI_SCENARIOS.map((sc) => (
-                    <button
-                      key={sc.id}
-                      type="button"
-                      onClick={() => setSelectedScenarioId(sc.id)}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-figure transition-colors border ${
-                        selectedScenarioId === sc.id
-                          ? "border-horizon text-horizon bg-horizon-dim font-semibold"
-                          : "border-line text-ink-soft hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
-                      }`}
-                    >
-                      {sc.id === "spending" ? "Spending Spike" : sc.id === "emergency" ? "Emergency Runway" : "Portfolio Drift"}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Simulated Conversation */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeScenario.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-4"
-                  >
-                    {/* User Query */}
-                    <div className="flex justify-end">
-                      <div
-                        className="rounded-2xl rounded-tr-sm px-4 py-2.5 text-xs sm:text-sm font-editorial max-w-[85%] shadow-sm"
-                        style={{
-                          background: "var(--color-horizon)",
-                          color: "#05080f",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {activeScenario.prompt}
-                      </div>
-                    </div>
-
-                    {/* FinAI Structured Response */}
-                    <div className="space-y-2.5 pt-1">
-                      {activeScenario.responses.map((step, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, x: -14 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.12 + idx * 0.12, duration: 0.35 }}
-                          className="rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-editorial"
-                          style={{
-                            background: "var(--color-paper-raised)",
-                            borderColor: "var(--color-line)",
-                            color: "var(--color-ink-soft)",
-                          }}
-                        >
-                          {step}
-                        </motion.div>
-                      ))}
-
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="flex items-center gap-2 pt-2 px-1"
-                      >
-                        <div className="h-2 w-2 rounded-full animate-ping" style={{ background: "var(--color-horizon)" }} />
-                        <span className="font-figure text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-horizon)" }}>
-                          Ledger Verification: {activeScenario.citation}
-                        </span>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+                <span className="font-figure text-[10px] uppercase tracking-widest text-ink-soft flex items-center gap-1.5 font-semibold">
+                  <Cpu className="h-3 w-3 text-horizon" />
+                  FinAI Context Engine · Interactive Preview
+                </span>
               </div>
-            </motion.div>
 
-            {/* Right 5 Cols: Contextual Telemetry Cards */}
-            <div className="lg:col-span-5 space-y-3">
-              <p
-                className="font-figure text-[10px] uppercase tracking-[0.25em] mb-4"
-                style={{ color: "var(--color-horizon)" }}
-              >
-                Ledger Data Extracted
-              </p>
+              {/* Scenario Prompt Chips */}
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                {AI_SCENARIOS.map((sc) => (
+                  <button
+                    key={sc.id}
+                    type="button"
+                    onClick={() => setSelectedScenarioId(sc.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-figure transition-all border cursor-pointer font-medium ${
+                      selectedScenarioId === sc.id
+                        ? "border-horizon text-horizon font-semibold shadow-xs"
+                        : "border-line text-ink-soft hover:text-ink hover:bg-black/5 dark:hover:bg-white/5"
+                    }`}
+                    style={selectedScenarioId === sc.id ? { background: "var(--color-horizon-dim)" } : undefined}
+                  >
+                    {sc.chip}
+                  </button>
+                ))}
+              </div>
 
+              {/* Simulated Conversation */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeScenario.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-3"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-3.5"
                 >
-                  {activeScenario.telemetry.map((card, i) => (
-                    <motion.div
-                      key={card.title}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.4 }}
-                      className="rounded-xl border p-3.5 flex items-center justify-between"
+                  {/* User Query */}
+                  <div className="flex justify-end">
+                    <div
+                      className="rounded-2xl rounded-tr-sm px-4 py-2.5 text-xs sm:text-sm font-editorial max-w-[85%] shadow-xs"
                       style={{
-                        background: "var(--color-paper-raised)",
-                        borderColor: "var(--color-line)",
+                        background: "var(--color-horizon)",
+                        color: "#05080f",
+                        fontWeight: 600,
                       }}
                     >
-                      <div>
-                        <p className="font-editorial text-ink text-xs font-medium">{card.title}</p>
-                        <p className="font-figure text-sm font-bold text-ink mt-0.5">{card.val}</p>
-                      </div>
-                      <span
-                        className="font-figure text-[10px] px-2 py-0.5 rounded font-semibold"
+                      {activeScenario.prompt}
+                    </div>
+                  </div>
+
+                  {/* FinAI Structured Response */}
+                  <div className="space-y-2 pt-1">
+                    {activeScenario.responses.map((step, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.08 + idx * 0.08, duration: 0.3 }}
+                        className="rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-editorial"
                         style={{
-                          background: card.bad ? "rgba(248,113,113,0.15)" : "rgba(16,217,138,0.15)",
-                          color: card.bad ? "#f87171" : "#10d98a",
+                          background: "var(--color-paper-raised)",
+                          borderColor: "var(--color-line)",
+                          color: "var(--color-ink)",
                         }}
                       >
-                        {card.drift}
+                        {step}
+                      </motion.div>
+                    ))}
+
+                    <div className="flex items-center gap-2 pt-2 px-1">
+                      <div className="h-2 w-2 rounded-full animate-ping" style={{ background: "var(--color-horizon)" }} />
+                      <span className="font-figure text-[10px] uppercase tracking-wider font-semibold" style={{ color: isLight ? "#92400e" : "var(--color-horizon)" }}>
+                        Ledger Verification: {activeScenario.citation}
                       </span>
-                    </motion.div>
-                  ))}
+                    </div>
+                  </div>
                 </motion.div>
               </AnimatePresence>
+            </div>
+          </motion.div>
 
-              <p className="text-[10px] font-editorial pt-1 text-ink-soft" style={{ opacity: 0.6 }}>
+          {/* Right 5 Cols: Contextual Telemetry Cards */}
+          <div className="lg:col-span-5 space-y-3">
+            <p
+              className="font-figure text-[10px] uppercase tracking-[0.25em] mb-2 font-semibold"
+              style={{ color: "var(--color-horizon)" }}
+            >
+              Ledger Data Extracted
+            </p>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeScenario.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-2.5"
+              >
+                {activeScenario.telemetry.map((card, i) => (
+                  <motion.div
+                    key={card.title}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.35 }}
+                    className="rounded-xl border p-3.5 flex items-center justify-between shadow-xs"
+                    style={{
+                      background: "var(--color-paper-raised)",
+                      borderColor: "var(--color-line)",
+                    }}
+                  >
+                    <div>
+                      <p className="font-editorial text-ink-soft text-xs font-medium">{card.title}</p>
+                      <p className="font-figure text-sm font-bold text-ink mt-0.5">{card.val}</p>
+                    </div>
+                    <span
+                      className="font-figure text-[10px] px-2.5 py-1 rounded-full font-semibold"
+                      style={{
+                        background: card.bad
+                          ? (isLight ? "rgba(220, 38, 38, 0.12)" : "rgba(248, 113, 113, 0.15)")
+                          : (isLight ? "rgba(22, 163, 74, 0.12)" : "rgba(16, 217, 138, 0.15)"),
+                        color: card.bad
+                          ? (isLight ? "#b91c1c" : "#f87171")
+                          : (isLight ? "#15803d" : "#10d98a"),
+                      }}
+                    >
+                      {card.drift}
+                    </span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+              <p className="text-[10px] font-editorial pt-1" style={{ color: "var(--color-ink-soft)" }}>
                 Click different scenario pills above to test FinAI&apos;s verified query-response mechanism.
               </p>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
+    );
+  }
 
 /* ═══════════════════════════════════════════════════════════════════ */
 /* Root ScrollStory Export                                             */

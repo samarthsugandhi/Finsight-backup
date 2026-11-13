@@ -162,6 +162,7 @@ export default function CoinLoader({ onComplete }) {
   const [done, setDone] = useState(false);
   const skipRef = useRef(false);
   const rotationRef = useRef(0);
+  const isMountedRef = useRef(false);
 
   const reducedMotion =
     typeof window !== "undefined"
@@ -169,13 +170,16 @@ export default function CoinLoader({ onComplete }) {
       : false;
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (reducedMotion) {
       onComplete?.();
-      return;
+      return () => { isMountedRef.current = false; };
     }
 
     async function runMedallionSequence() {
       // 1 ── Emergence: Coin lifts up from dark floor, shadow sharpens
+      if (!isMountedRef.current) return;
       sceneControls.start({
         y: [70, 0],
         opacity: [0, 1],
@@ -189,6 +193,7 @@ export default function CoinLoader({ onComplete }) {
       });
 
       await new Promise((r) => setTimeout(r, 650));
+      if (!isMountedRef.current) return;
 
       // 2 ── Multi-stage 3D Tumble: 720° rotation showing thickness & milled edge
       bodyControls.start({
@@ -204,6 +209,7 @@ export default function CoinLoader({ onComplete }) {
       const startTime = performance.now();
       const rotDuration = 2100;
       function trackRot() {
+        if (!isMountedRef.current) return;
         const elapsed = performance.now() - startTime;
         const p = Math.min(elapsed / rotDuration, 1);
         // Custom easing approximation [0.12, 0, 0.28, 1]
@@ -215,6 +221,7 @@ export default function CoinLoader({ onComplete }) {
       requestAnimationFrame(trackRot);
 
       await new Promise((r) => setTimeout(r, 2150));
+      if (!isMountedRef.current) return;
 
       // 3 ── Settle with physics overshoot bounce
       await bodyControls.start({
@@ -223,6 +230,7 @@ export default function CoinLoader({ onComplete }) {
         scale: [1, 1.05, 1],
         transition: { duration: 0.45, ease: "easeOut" },
       });
+      if (!isMountedRef.current) return;
 
       // 4 ── High-speed gleam light streak across embossed mark
       gleamControls.start({
@@ -231,6 +239,7 @@ export default function CoinLoader({ onComplete }) {
       });
 
       await new Promise((r) => setTimeout(r, 350));
+      if (!isMountedRef.current) return;
 
       // 5 ── Logo text reveal
       setLogoVisible(true);
@@ -241,6 +250,7 @@ export default function CoinLoader({ onComplete }) {
       });
 
       await new Promise((r) => setTimeout(r, 750));
+      if (!isMountedRef.current) return;
 
       // 6 ── Scale & elegant fade transition into home page
       sceneControls.start({
@@ -252,12 +262,15 @@ export default function CoinLoader({ onComplete }) {
         opacity: 0,
         transition: { duration: 0.6, ease: "easeInOut" },
       });
+      if (!isMountedRef.current) return;
 
       setDone(true);
       onComplete?.();
     }
 
     runMedallionSequence();
+
+    return () => { isMountedRef.current = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSkip() {

@@ -10,7 +10,6 @@ import {
   Lightbulb,
   CheckCircle2,
   ListOrdered,
-  Info,
   LayoutDashboard,
   ArrowLeftRight,
   TrendingUp,
@@ -25,6 +24,39 @@ import {
   FileUp,
   MessageSquare,
 } from "lucide-react";
+
+// ── Position persistence (matches FinAI draggable pattern) ─────────────────────
+
+const POSITION_KEY = "finsight_guide_position";
+const DEFAULT_POSITION = { x: null, y: null };
+
+function loadPosition() {
+  if (typeof window === "undefined") return DEFAULT_POSITION;
+  try {
+    const raw = window.localStorage.getItem(POSITION_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_POSITION;
+  } catch {
+    return DEFAULT_POSITION;
+  }
+}
+
+function savePosition(pos) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(POSITION_KEY, JSON.stringify(pos));
+}
+
+function clampToViewport(x, y, width, height, isMobile = false) {
+  if (typeof window === "undefined") return { x, y };
+  const minX = 12;
+  const maxX = window.innerWidth - width - 12;
+  const minY = 12;
+  // On mobile/tablet, bottom navigation bar is ~56px + safe-area. Keep at least 80px space from bottom.
+  const maxY = window.innerHeight - height - (isMobile ? 80 : 12);
+  return {
+    x: Math.min(Math.max(minX, x), Math.max(minX, maxX)),
+    y: Math.min(Math.max(minY, y), Math.max(minY, maxY)),
+  };
+}
 
 // ── Module guide data ─────────────────────────────────────────────────────────
 
@@ -598,8 +630,116 @@ export default function ModuleGuideButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const closeRef = useRef(null);
+  const buttonRef = useRef(null);
   const guide = resolveGuide(pathname);
   const GuideIcon = guide.icon || HelpCircle;
+
+  // ── Draggable position ──────────────────────────────────────────────────────
+  const [position, setPosition] = useState(DEFAULT_POSITION);
+  const [dragging, setDragging] = useState(false);
+  const dragOffset = useRef({ dx: 0, dy: 0 });
+  const dragStartPoint = useRef({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
+
+  // Mobile detection (< 1024px)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const timer = setTimeout(() => setIsMobile(mq.matches), 0);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => {
+      clearTimeout(timer);
+      mq.removeEventListener("change", handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPosition(loadPosition());
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  function handleDragStart(e) {
+    if (e.button !== undefined && e.button !== 0) return; // Only left click if mouse
+    const point = e.touches ? e.touches[0] : e;
+    const rect = buttonRef.current
+      ? buttonRef.current.getBoundingClientRect()
+      : { left: 0, top: 0 };
+    dragStartPoint.current = { x: point.clientX, y: point.clientY };
+    dragOffset.current = { dx: point.clientX - rect.left, dy: point.clientY - rect.top };
+    isDraggingRef.current = false;
+    setDragging(true);
+  }
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    function handleMove(e) {
+      const point = e.touches ? e.touches[0] : e;
+      const dist = Math.hypot(
+        point.clientX - dragStartPoint.current.x,
+        point.clientY - dragStartPoint.current.y
+      );
+      if (dist > 4) {
+        isDraggingRef.current = true;
+      }
+      if (!isDraggingRef.current) return;
+
+      const next = clampToViewport(
+        point.clientX - dragOffset.current.dx,
+        point.clientY - dragOffset.current.dy,
+        44, // width of button
+        44, // height of button
+        isMobile
+      );
+      setPosition(next);
+    }
+
+    function handleUp() {
+      setDragging(false);
+      if (isDraggingRef.current) {
+        setPosition((current) => {
+          savePosition(current);
+          return current;
+        });
+      }
+    }
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+    window.addEventListener("touchcancel", handleUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+      window.removeEventListener("touchcancel", handleUp);
+    };
+  }, [dragging, isMobile]);
+
+  // Re-clamp position if screen or orientation changes
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => {
+        if (prev.x === null || prev.y === null) return prev;
+        return clampToViewport(prev.x, prev.y, 44, 44, isMobile);
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobile]);
+
+  function handleButtonClick() {
+    if (isDraggingRef.current) {
+      return; // Was dragged, not clicked
+    }
+    setOpen(true);
+  }
 
   // Close on Escape
   useEffect(() => {
@@ -633,17 +773,27 @@ export default function ModuleGuideButton() {
     }
   }, [open]);
 
+  // Dynamic position style: custom dragged coords or initial responsive default
+  const buttonStyle = position.x !== null && position.y !== null
+    ? { left: `${position.x}px`, top: `${position.y}px`, right: "auto", bottom: "auto" }
+    : isMobile
+    ? { bottom: "calc(76px + env(safe-area-inset-bottom, 0px))", left: "20px", right: "auto", top: "auto" }
+    : { bottom: "24px", left: "288px", right: "auto", top: "auto" };
+
   return (
     <>
-      {/* ── Floating trigger button ── */}
+      {/* ── Floating trigger button (exact original design + draggable inside layout on phone, tab, desktop) ── */}
       <motion.button
-        onClick={() => setOpen(true)}
-        whileHover={{ scale: 1.1 }}
+        ref={buttonRef}
+        onClick={handleButtonClick}
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+        whileHover={{ scale: dragging ? 1 : 1.1 }}
         whileTap={{ scale: 0.93 }}
         title={`Open ${guide.title} guide`}
         aria-label={`Open ${guide.title} guide`}
-        className="fixed bottom-6 left-6 lg:left-72 z-40 h-11 w-11 rounded-full bg-paper-raised border border-horizon/40 text-horizon shadow-lg hover:shadow-horizon/20 hover:border-horizon/70 hover:bg-horizon/10 transition-all duration-200 flex items-center justify-center cursor-pointer select-none group"
-        style={{ willChange: "transform" }}
+        className="fixed z-40 h-11 w-11 rounded-full bg-paper-raised border border-horizon/40 text-horizon shadow-lg hover:shadow-horizon/20 hover:border-horizon/70 hover:bg-horizon/10 transition-colors flex items-center justify-center select-none group cursor-grab active:cursor-grabbing touch-none"
+        style={{ willChange: "transform", touchAction: "none", ...buttonStyle }}
       >
         <span className="font-screamer text-xl font-bold tracking-tight pointer-events-none leading-none">?</span>
 
@@ -655,7 +805,7 @@ export default function ModuleGuideButton() {
         </span>
       </motion.button>
 
-      {/* ── Guide modal ── */}
+      {/* ── Guide modal (exact original design retained) ── */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -677,13 +827,13 @@ export default function ModuleGuideButton() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="bg-paper border border-line rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+              className="bg-paper-raised border border-line rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="shrink-0 px-5 py-4 border-b border-line flex items-start justify-between gap-3 bg-paper-raised">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="shrink-0 h-9 w-9 rounded-xl bg-horizon/12 border border-horizon/25 flex items-center justify-center text-horizon">
+                  <div className="shrink-0 h-9 w-9 rounded-xl bg-horizon/15 border border-horizon/30 flex items-center justify-center text-horizon">
                     <GuideIcon className="h-4.5 w-4.5" style={{ width: "18px", height: "18px" }} />
                   </div>
                   <div className="min-w-0">
@@ -710,7 +860,7 @@ export default function ModuleGuideButton() {
               <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 font-editorial text-xs leading-relaxed text-ink">
 
                 {/* Overview */}
-                <div className="flex items-start gap-2.5 rounded-xl border border-horizon/20 bg-horizon/8 px-4 py-3.5">
+                <div className="flex items-start gap-2.5 rounded-xl border border-horizon/30 bg-horizon/10 px-4 py-3.5">
                   <Sparkles className="h-4 w-4 text-horizon shrink-0 mt-0.5" />
                   <p className="text-ink font-medium leading-snug">{guide.overview}</p>
                 </div>
@@ -758,7 +908,7 @@ export default function ModuleGuideButton() {
 
                 {/* Pro Tip */}
                 {guide.tips && (
-                  <div className="flex items-start gap-2.5 rounded-xl border border-line bg-paper-raised px-4 py-3.5">
+                  <div className="flex items-start gap-2.5 rounded-xl border border-line bg-paper px-4 py-3.5">
                     <Lightbulb className="h-4 w-4 text-horizon shrink-0 mt-0.5" />
                     <div>
                       <span className="block text-[9px] font-bold uppercase tracking-widest text-horizon mb-1">
@@ -770,7 +920,7 @@ export default function ModuleGuideButton() {
                 )}
 
                 {/* FinAI nudge */}
-                <div className="flex items-start gap-2.5 rounded-xl border border-line/60 bg-paper px-4 py-3">
+                <div className="flex items-start gap-2.5 rounded-xl border border-line bg-paper px-4 py-3">
                   <MessageSquare className="h-3.5 w-3.5 text-ink-soft shrink-0 mt-0.5" />
                   <p className="text-ink-soft text-[11px]">
                     Need more help?{" "}
@@ -788,7 +938,7 @@ export default function ModuleGuideButton() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-lg bg-horizon px-4 py-1.5 text-[11px] font-screamer font-bold uppercase tracking-wide text-[#0f1b33] hover:bg-horizon/90 active:scale-95 transition-all cursor-pointer"
+                  className="rounded-lg bg-horizon px-4 py-1.5 text-[11px] font-screamer font-bold uppercase tracking-wide text-white dark:text-[#080b12] hover:bg-horizon/90 active:scale-95 transition-all cursor-pointer shadow-xs"
                 >
                   Got it
                 </button>

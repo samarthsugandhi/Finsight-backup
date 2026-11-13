@@ -61,10 +61,10 @@ import {
 const SUPPORTED_TYPES = ["STOCK", "MUTUAL_FUND", "GOLD", "FIXED_DEPOSIT"];
 
 const CATEGORY_META = {
-  STOCK:         { label: "Stocks",         icon: TrendingUp, color: "text-blue-400",   bg: "bg-blue-400/10", border: "border-blue-400/30" },
-  MUTUAL_FUND:   { label: "Mutual Funds",   icon: PieIcon,    color: "text-violet-400", bg: "bg-violet-400/10", border: "border-violet-400/30" },
-  GOLD:          { label: "Gold",           icon: Coins,      color: "text-amber-400",  bg: "bg-amber-400/10", border: "border-amber-400/30" },
-  FIXED_DEPOSIT: { label: "Fixed Deposits", icon: Building,   color: "text-emerald-400",bg: "bg-emerald-400/10", border: "border-emerald-400/30" },
+  STOCK:         { label: "Stocks",         icon: TrendingUp, color: "text-blue-600 dark:text-blue-400",   bg: "bg-blue-500/10 dark:bg-blue-400/10", border: "border-blue-500/30 dark:border-blue-400/30" },
+  MUTUAL_FUND:   { label: "Mutual Funds",   icon: PieIcon,    color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-500/10 dark:bg-violet-400/10", border: "border-violet-500/30 dark:border-violet-400/30" },
+  GOLD:          { label: "Gold",           icon: Coins,      color: "text-amber-600 dark:text-amber-400",  bg: "bg-amber-500/10 dark:bg-amber-400/10", border: "border-amber-500/30 dark:border-amber-400/30" },
+  FIXED_DEPOSIT: { label: "Fixed Deposits", icon: Building,   color: "text-emerald-600 dark:text-emerald-400",bg: "bg-emerald-500/10 dark:bg-emerald-400/10", border: "border-emerald-500/30 dark:border-emerald-400/30" },
 };
 
 const CATEGORY_TABS = [
@@ -203,7 +203,7 @@ function SummaryCards({ summary }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
       {/* 1. Total Invested */}
-      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all">
+      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all hover:border-horizon/30 shadow-xs">
         <p className="text-[11px] uppercase tracking-wider text-ink-soft font-semibold flex items-center">
           <span>Total Invested (Cost Basis)</span>
           <MetricInfo
@@ -217,7 +217,7 @@ function SummaryCards({ summary }) {
       </div>
 
       {/* 2. Current Value */}
-      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all">
+      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all hover:border-horizon/30 shadow-xs">
         <p className="text-[11px] uppercase tracking-wider text-ink-soft font-semibold flex items-center">
           <span>Current Market Value</span>
           <MetricInfo
@@ -238,7 +238,7 @@ function SummaryCards({ summary }) {
       </div>
 
       {/* 3. Profit / Loss */}
-      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all">
+      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all hover:border-horizon/30 shadow-xs">
         <p className="text-[11px] uppercase tracking-wider text-ink-soft font-semibold flex items-center">
           <span>Profit / Loss (Priced Assets)</span>
           <MetricInfo
@@ -265,7 +265,7 @@ function SummaryCards({ summary }) {
       </div>
 
       {/* 4. Investments Without Price */}
-      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all">
+      <div className="rounded-xl border border-line bg-paper-raised p-4 transition-all hover:border-horizon/30 shadow-xs">
         <p className="text-[11px] uppercase tracking-wider text-ink-soft font-semibold flex items-center">
           <span>Investments Without Price</span>
           <MetricInfo
@@ -1053,7 +1053,7 @@ function AssetTable({
                           {h.notes && (
                             <div className="col-span-2">
                               <p className="text-ink-soft uppercase tracking-wider text-[10px]">Notes</p>
-                              <p className="text-ink mt-0.5 italic">"{h.notes}"</p>
+                              <p className="text-ink mt-0.5 italic">&ldquo;{h.notes}&rdquo;</p>
                             </div>
                           )}
                         </div>
@@ -1135,7 +1135,7 @@ export default function PortfolioPage() {
   const supportedHoldings = useMemo(() => {
     if (!portfolio?.holdings) return [];
     return portfolio.holdings.filter((h) => isSupportedType(h.type));
-  }, [portfolio?.holdings]);
+  }, [portfolio]);
 
   const filteredHoldings = useMemo(() => {
     let list = supportedHoldings;
@@ -1235,36 +1235,35 @@ export default function PortfolioPage() {
         <button
           type="button"
           onClick={() => setActiveMainTab("PORTFOLIO")}
-          className={`sm:col-span-1 lg:col-span-2 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] ${
+          className={`sm:col-span-1 lg:col-span-2 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] overflow-hidden ${
             activeMainTab === "PORTFOLIO"
-              ? "bg-gradient-to-br from-[#E5A93C] via-[#deb04c] to-[#c78d22] text-[#0f1b33] border-[#b87d15] shadow-lg shadow-amber-900/10 ring-2 ring-horizon/40 dark:from-[#d6ff62] dark:via-[#c8f249] dark:to-[#b5e32b] dark:text-[#080b12] dark:border-[#d6ff62] dark:shadow-lime-950/30"
-              : "bg-paper-raised text-ink border-line hover:border-horizon/60 hover:bg-paper-raised/80 hover:shadow-md"
+              ? "bg-paper-raised border-horizon ring-2 ring-horizon/30 shadow-lg shadow-horizon/5 dark:shadow-black/50"
+              : "bg-paper-raised text-ink border-line hover:border-horizon/50 hover:bg-paper-raised/90 hover:shadow-xs"
           }`}
         >
-          <div className="flex items-start justify-between w-full">
+          {activeMainTab === "PORTFOLIO" && (
+            <div className="absolute inset-0 bg-gradient-to-br from-horizon/10 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          )}
+          <div className="flex items-start justify-between w-full relative z-10">
             <div className="flex items-center gap-3">
               <div
                 className={`p-2.5 rounded-xl transition-colors ${
                   activeMainTab === "PORTFOLIO"
-                    ? "bg-[#0f1b33] text-horizon dark:bg-[#080b12] dark:text-[#d6ff62]"
+                    ? "bg-horizon text-white dark:text-[#080b12] shadow-xs"
                     : "bg-horizon/10 text-horizon group-hover:bg-horizon/20"
                 }`}
               >
                 <Briefcase className="h-5 w-5" />
               </div>
               <div>
-                <h2
-                  className={`font-screamer text-xl sm:text-2xl uppercase tracking-wide leading-tight ${
-                    activeMainTab === "PORTFOLIO" ? "text-[#0f1b33] dark:text-[#080b12]" : "text-ink"
-                  }`}
-                >
+                <h2 className="font-screamer text-xl sm:text-2xl uppercase tracking-wide leading-tight text-ink">
                   My Portfolio
                 </h2>
                 <span
                   className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
                     activeMainTab === "PORTFOLIO"
-                      ? "bg-[#0f1b33]/15 text-[#0f1b33] dark:bg-[#080b12]/15 dark:text-[#080b12]"
-                      : "bg-ink/5 text-ink-soft"
+                      ? "bg-horizon/15 text-horizon border border-horizon/30"
+                      : "bg-ink/5 text-ink-soft border border-line"
                   }`}
                 >
                   {supportedHoldings.length} {supportedHoldings.length === 1 ? "Holding" : "Holdings"}
@@ -1274,16 +1273,12 @@ export default function PortfolioPage() {
             <div
               className={`h-3 w-3 rounded-full transition-all ${
                 activeMainTab === "PORTFOLIO"
-                  ? "bg-[#0f1b33] ring-4 ring-[#0f1b33]/20 dark:bg-[#080b12] dark:ring-[#080b12]/20"
+                  ? "bg-horizon ring-4 ring-horizon/25"
                   : "border border-line bg-transparent group-hover:border-horizon"
               }`}
             />
           </div>
-          <p
-            className={`text-xs sm:text-sm mt-3 font-editorial leading-relaxed ${
-              activeMainTab === "PORTFOLIO" ? "text-[#0f1b33]/90 dark:text-[#080b12]/90 font-medium" : "text-ink-soft"
-            }`}
-          >
+          <p className="text-xs sm:text-sm mt-3 font-editorial leading-relaxed text-ink-soft relative z-10">
             Track your existing investments.
           </p>
         </button>
@@ -1292,35 +1287,34 @@ export default function PortfolioPage() {
         <button
           type="button"
           onClick={() => setActiveMainTab("EXPLORE")}
-          className={`sm:col-span-1 lg:col-span-2 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] ${
+          className={`sm:col-span-1 lg:col-span-2 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] overflow-hidden ${
             activeMainTab === "EXPLORE"
-              ? "bg-gradient-to-br from-[#E5A93C] via-[#deb04c] to-[#c78d22] text-[#0f1b33] border-[#b87d15] shadow-lg shadow-amber-900/10 ring-2 ring-horizon/40 dark:from-[#d6ff62] dark:via-[#c8f249] dark:to-[#b5e32b] dark:text-[#080b12] dark:border-[#d6ff62] dark:shadow-lime-950/30"
-              : "bg-paper-raised text-ink border-line hover:border-horizon/60 hover:bg-paper-raised/80 hover:shadow-md"
+              ? "bg-paper-raised border-horizon ring-2 ring-horizon/30 shadow-lg shadow-horizon/5 dark:shadow-black/50"
+              : "bg-paper-raised text-ink border-line hover:border-horizon/50 hover:bg-paper-raised/90 hover:shadow-xs"
           }`}
         >
-          <div className="flex items-start justify-between w-full">
+          {activeMainTab === "EXPLORE" && (
+            <div className="absolute inset-0 bg-gradient-to-br from-horizon/10 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          )}
+          <div className="flex items-start justify-between w-full relative z-10">
             <div className="flex items-center gap-3">
               <div
                 className={`p-2.5 rounded-xl transition-colors ${
                   activeMainTab === "EXPLORE"
-                    ? "bg-[#0f1b33] text-horizon dark:bg-[#080b12] dark:text-[#d6ff62]"
+                    ? "bg-horizon text-white dark:text-[#080b12] shadow-xs"
                     : "bg-horizon/10 text-horizon group-hover:bg-horizon/20"
                 }`}
               >
                 <Compass className="h-5 w-5" />
               </div>
               <div>
-                <h2
-                  className={`font-screamer text-xl sm:text-2xl uppercase tracking-wide leading-tight ${
-                    activeMainTab === "EXPLORE" ? "text-[#0f1b33] dark:text-[#080b12]" : "text-ink"
-                  }`}
-                >
+                <h2 className="font-screamer text-xl sm:text-2xl uppercase tracking-wide leading-tight text-ink">
                   Investment Planner
                 </h2>
                 <span
                   className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
                     activeMainTab === "EXPLORE"
-                      ? "bg-[#0f1b33]/15 text-[#0f1b33] dark:bg-[#080b12]/15 dark:text-[#080b12]"
+                      ? "bg-horizon/15 text-horizon border border-horizon/30"
                       : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                   }`}
                 >
@@ -1331,16 +1325,12 @@ export default function PortfolioPage() {
             <div
               className={`h-3 w-3 rounded-full transition-all ${
                 activeMainTab === "EXPLORE"
-                  ? "bg-[#0f1b33] ring-4 ring-[#0f1b33]/20 dark:bg-[#080b12] dark:ring-[#080b12]/20"
+                  ? "bg-horizon ring-4 ring-horizon/25"
                   : "border border-line bg-transparent group-hover:border-horizon"
               }`}
             />
           </div>
-          <p
-            className={`text-xs sm:text-sm mt-3 font-editorial leading-relaxed ${
-              activeMainTab === "EXPLORE" ? "text-[#0f1b33]/90 dark:text-[#080b12]/90 font-medium" : "text-ink-soft"
-            }`}
-          >
+          <p className="text-xs sm:text-sm mt-3 font-editorial leading-relaxed text-ink-soft relative z-10">
             Explore investment options based on your preferences.
           </p>
         </button>
@@ -1349,35 +1339,34 @@ export default function PortfolioPage() {
         <button
           type="button"
           onClick={() => setActiveMainTab("FD_CALCULATOR")}
-          className={`sm:col-span-2 lg:col-span-1 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] ${
+          className={`sm:col-span-2 lg:col-span-1 group relative text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[125px] sm:min-h-[135px] overflow-hidden ${
             activeMainTab === "FD_CALCULATOR"
-              ? "bg-gradient-to-br from-[#E5A93C] via-[#deb04c] to-[#c78d22] text-[#0f1b33] border-[#b87d15] shadow-lg shadow-amber-900/10 ring-2 ring-horizon/40 dark:from-[#d6ff62] dark:via-[#c8f249] dark:to-[#b5e32b] dark:text-[#080b12] dark:border-[#d6ff62] dark:shadow-lime-950/30"
-              : "bg-paper-raised text-ink border-line hover:border-horizon/60 hover:bg-paper-raised/80 hover:shadow-md"
+              ? "bg-paper-raised border-horizon ring-2 ring-horizon/30 shadow-lg shadow-horizon/5 dark:shadow-black/50"
+              : "bg-paper-raised text-ink border-line hover:border-horizon/50 hover:bg-paper-raised/90 hover:shadow-xs"
           }`}
         >
-          <div className="flex items-start justify-between w-full">
+          {activeMainTab === "FD_CALCULATOR" && (
+            <div className="absolute inset-0 bg-gradient-to-br from-horizon/10 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          )}
+          <div className="flex items-start justify-between w-full relative z-10">
             <div className="flex items-center gap-2.5">
               <div
                 className={`p-2 rounded-xl transition-colors ${
                   activeMainTab === "FD_CALCULATOR"
-                    ? "bg-[#0f1b33] text-horizon dark:bg-[#080b12] dark:text-[#d6ff62]"
+                    ? "bg-horizon text-white dark:text-[#080b12] shadow-xs"
                     : "bg-horizon/10 text-horizon group-hover:bg-horizon/20"
                 }`}
               >
                 <Calculator className="h-4.5 w-4.5" />
               </div>
               <div>
-                <h2
-                  className={`font-screamer text-lg sm:text-xl uppercase tracking-wide leading-tight ${
-                    activeMainTab === "FD_CALCULATOR" ? "text-[#0f1b33] dark:text-[#080b12]" : "text-ink"
-                  }`}
-                >
+                <h2 className="font-screamer text-lg sm:text-xl uppercase tracking-wide leading-tight text-ink">
                   FD Calculator
                 </h2>
                 <span
                   className={`text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-full inline-block mt-0.5 ${
                     activeMainTab === "FD_CALCULATOR"
-                      ? "bg-[#0f1b33]/15 text-[#0f1b33] dark:bg-[#080b12]/15 dark:text-[#080b12]"
+                      ? "bg-horizon/15 text-horizon border border-horizon/30"
                       : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
                   }`}
                 >
@@ -1388,16 +1377,12 @@ export default function PortfolioPage() {
             <div
               className={`h-3 w-3 rounded-full transition-all ${
                 activeMainTab === "FD_CALCULATOR"
-                  ? "bg-[#0f1b33] ring-4 ring-[#0f1b33]/20 dark:bg-[#080b12] dark:ring-[#080b12]/20"
+                  ? "bg-horizon ring-4 ring-horizon/25"
                   : "border border-line bg-transparent group-hover:border-horizon"
               }`}
             />
           </div>
-          <p
-            className={`text-xs mt-3 font-editorial leading-relaxed ${
-              activeMainTab === "FD_CALCULATOR" ? "text-[#0f1b33]/90 dark:text-[#080b12]/90 font-medium" : "text-ink-soft"
-            }`}
-          >
+          <p className="text-xs mt-3 font-editorial leading-relaxed text-ink-soft relative z-10">
             Estimate fixed deposit returns.
           </p>
         </button>

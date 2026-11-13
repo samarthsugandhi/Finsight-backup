@@ -95,7 +95,7 @@ export default function FinancialHealthPage() {
   }, [initialLoading, viewMode, selectedMonth, selectedYear, selectedWeek, fetchHealthScore]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 space-y-8">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
       {/* Page Header */}
       <PageHeader
         title="FinScore"
@@ -110,48 +110,50 @@ export default function FinancialHealthPage() {
       <ErrorState message={error} onRetry={refetch} />
 
       {/* Primary Navigation Tabs: Weekly (Monitoring) | Monthly (Health Score) | Yearly (Progress) */}
-      <Card className="bg-paper-raised/90 border border-line/70 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* View Mode Switcher */}
-          <div className="flex items-center gap-1.5 bg-paper p-1.5 rounded-xl border border-line">
-            <button
-              type="button"
-              onClick={() => setViewMode("weekly")}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
-                viewMode === "weekly"
-                  ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
-                  : "text-ink-soft hover:text-ink hover:bg-ink/5"
-              }`}
-            >
-              <Activity className="h-3.5 w-3.5" />
-              <span>Weekly Monitoring</span>
-            </button>
+      <Card className="bg-paper-raised/90 border border-line/70 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          {/* View Mode Switcher — horizontally scrollable on mobile */}
+          <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
+            <div className="flex items-center gap-1.5 bg-paper p-1.5 rounded-xl border border-line w-max">
+              <button
+                type="button"
+                onClick={() => setViewMode("weekly")}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
+                  viewMode === "weekly"
+                    ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
+                    : "text-ink-soft hover:text-ink hover:bg-ink/5"
+                }`}
+              >
+                <Activity className="h-3.5 w-3.5" />
+                <span>Weekly Monitoring</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setViewMode("monthly")}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
-                viewMode === "monthly"
-                  ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
-                  : "text-ink-soft hover:text-ink hover:bg-ink/5"
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Monthly FinScore</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("monthly")}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
+                  viewMode === "monthly"
+                    ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
+                    : "text-ink-soft hover:text-ink hover:bg-ink/5"
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>Monthly FinScore</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setViewMode("yearly")}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
-                viewMode === "yearly"
-                  ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
-                  : "text-ink-soft hover:text-ink hover:bg-ink/5"
-              }`}
-            >
-              <Compass className="h-3.5 w-3.5" />
-              <span>Yearly Progress</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("yearly")}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all ${
+                  viewMode === "yearly"
+                    ? "bg-horizon text-[#0f1b33] font-bold shadow-sm"
+                    : "text-ink-soft hover:text-ink hover:bg-ink/5"
+                }`}
+              >
+                <Compass className="h-3.5 w-3.5" />
+                <span>Yearly Progress</span>
+              </button>
+            </div>
           </div>
 
           {/* Period Selectors */}

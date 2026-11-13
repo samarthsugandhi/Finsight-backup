@@ -8,7 +8,7 @@ export default function TransactionsPage() {
   const store = useFinance();
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6 sm:py-10">
       <PageHeader title="All Transactions" description="Your full financial ledger — every income and expense entry." />
       <TransactionsView store={store} />
     </div>
