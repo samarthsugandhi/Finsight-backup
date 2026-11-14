@@ -599,7 +599,7 @@ export async function seedDemoUsers() {
     maturityAmount: 36500,
   });
 
-  // Goals for P4 (Emergency fund of ₹15,000 for exact score 51)
+  // Goals for P4 (Emergency fund of ₹10,000 for exact score 51)
   const p4Emergency = await getOrCreateGoal(
     p4User.id,
     "Emergency Reserve Buffer",
@@ -607,9 +607,9 @@ export async function seedDemoUsers() {
     true,
     new Date("2027-12-31")
   );
-  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 5000, new Date("2026-08-20"), "Monthly debt buffer");
-  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 5000, new Date("2026-09-20"), "Monthly debt buffer");
-  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 5000, new Date("2026-10-20"), "Monthly debt buffer");
+  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 3500, new Date("2026-08-20"), "Monthly debt buffer");
+  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 3500, new Date("2026-09-20"), "Monthly debt buffer");
+  await addGoalContributionIfMissing(p4User.id, p4Emergency.id, 3000, new Date("2026-10-20"), "Monthly debt buffer");
 
   // Budgets for P4 (Aug, Sep, Oct, Nov) - Includes EMI budget
   for (const m of [8, 9, 10, 11]) {
