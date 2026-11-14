@@ -29,6 +29,25 @@ function normalizeTransaction(transaction) {
   };
 }
 
+function getDefaultDateForPeriod(mode, month, year) {
+  const now = new Date();
+  if (mode === "monthly" && month && year) {
+    if (month === now.getMonth() + 1 && year === now.getFullYear()) {
+      return now.toISOString().split("T")[0];
+    }
+    const maxDays = new Date(year, month, 0).getDate();
+    const day = Math.min(now.getDate(), maxDays);
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+  if (mode === "yearly" && year) {
+    if (year === now.getFullYear()) {
+      return now.toISOString().split("T")[0];
+    }
+    return `${year}-01-01`;
+  }
+  return now.toISOString().split("T")[0];
+}
+
 /**
  * Full transaction ledger UI. When `fixedType` is set ("INCOME" | "EXPENSE"),
  * this becomes the Income or Expenses page: the type selector/filter is
@@ -49,25 +68,41 @@ export default function TransactionsView({ store, fixedType }) {
   } = store;
 
   const now = new Date();
-  const [periodMode, setPeriodMode] = useState("monthly"); // "monthly" | "yearly" | "all_time"
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const initialPeriod = searchParams?.get("period") || "monthly";
+  const initialMonth = searchParams?.get("month") ? Number(searchParams.get("month")) : now.getMonth() + 1;
+  const initialYear = searchParams?.get("year") ? Number(searchParams.get("year")) : now.getFullYear();
+
+  const [periodMode, setPeriodMode] = useState(initialPeriod); // "monthly" | "yearly" | "all_time"
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const [selectedYear, setSelectedYear] = useState(initialYear);
 
   const [periodSummary, setPeriodSummary] = useState(null);
   const [periodTransactions, setPeriodTransactions] = useState([]);
   const [periodLoading, setPeriodLoading] = useState(false);
   const [periodError, setPeriodError] = useState("");
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     amount: "",
     type: fixedType || "EXPENSE",
     categoryId: "",
+    date: getDefaultDateForPeriod(initialPeriod, initialMonth, initialYear),
     description: "",
     sourceAccount: "",
     destinationAccount: "",
-  });
+  }));
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Keep form date synchronized to selected month/year when not actively editing
+  useEffect(() => {
+    if (!editingTransaction) {
+      setForm((prev) => ({
+        ...prev,
+        date: getDefaultDateForPeriod(periodMode, selectedMonth, selectedYear),
+      }));
+    }
+  }, [periodMode, selectedMonth, selectedYear, editingTransaction]);
 
   // Transfer Candidate Matching Modal state
   const [candidateModalTx, setCandidateModalTx] = useState(null);
@@ -130,10 +165,17 @@ export default function TransactionsView({ store, fixedType }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
+    const dateValue = form.date
+      ? new Date(form.date + "T12:00:00").toISOString()
+      : periodMode === "monthly"
+      ? new Date(selectedYear, selectedMonth - 1, Math.min(now.getDate(), new Date(selectedYear, selectedMonth, 0).getDate()), 12).toISOString()
+      : new Date().toISOString();
+
     const payload = {
       amount: Number(form.amount),
       type: fixedType || form.type,
       categoryId: Number(form.categoryId),
+      date: dateValue,
       description: form.description || undefined,
       sourceAccount: form.type === "TRANSFER" ? (form.sourceAccount || null) : undefined,
       destinationAccount: form.type === "TRANSFER" ? (form.destinationAccount || null) : undefined,
@@ -143,7 +185,15 @@ export default function TransactionsView({ store, fixedType }) {
       : await addTransaction(payload);
     if (ok) {
       setEditingTransaction(null);
-      setForm({ amount: "", type: fixedType || "EXPENSE", categoryId: "", description: "", sourceAccount: "", destinationAccount: "" });
+      setForm({
+        amount: "",
+        type: fixedType || "EXPENSE",
+        categoryId: "",
+        date: getDefaultDateForPeriod(periodMode, selectedMonth, selectedYear),
+        description: "",
+        sourceAccount: "",
+        destinationAccount: "",
+      });
       await fetchPeriodData(periodMode, selectedMonth, selectedYear);
     }
     setSubmitting(false);
@@ -156,10 +206,14 @@ export default function TransactionsView({ store, fixedType }) {
 
   function handleStartEdit(tx) {
     setEditingTransaction(tx);
+    const dateStr = tx.date
+      ? new Date(tx.date).toISOString().split("T")[0]
+      : getDefaultDateForPeriod(periodMode, selectedMonth, selectedYear);
     setForm({
       amount: String(tx.amount),
       type: tx.type,
       categoryId: String(tx.categoryId),
+      date: dateStr,
       description: tx.description || "",
       sourceAccount: tx.sourceAccount || "",
       destinationAccount: tx.destinationAccount || "",
@@ -168,7 +222,15 @@ export default function TransactionsView({ store, fixedType }) {
 
   function handleCancelEdit() {
     setEditingTransaction(null);
-    setForm({ amount: "", type: fixedType || "EXPENSE", categoryId: "", description: "", sourceAccount: "", destinationAccount: "" });
+    setForm({
+      amount: "",
+      type: fixedType || "EXPENSE",
+      categoryId: "",
+      date: getDefaultDateForPeriod(periodMode, selectedMonth, selectedYear),
+      description: "",
+      sourceAccount: "",
+      destinationAccount: "",
+    });
   }
 
   async function handleOpenCandidateModal(tx) {
@@ -394,7 +456,7 @@ export default function TransactionsView({ store, fixedType }) {
             </Select>
           )}
 
-          <div className={fixedType ? "sm:col-span-2" : ""}>
+          <div className={fixedType ? "" : ""}>
             <Select
               id="categoryId"
               label="Category"
@@ -425,11 +487,22 @@ export default function TransactionsView({ store, fixedType }) {
           />
 
           <Input
-            id="description"
-            label="Description (optional)"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            id="date"
+            label="Date"
+            type="date"
+            required
+            value={form.date}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
           />
+
+          <div className={fixedType ? "" : "sm:col-span-2"}>
+            <Input
+              id="description"
+              label="Description (optional)"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
 
           {form.type === "TRANSFER" && (
             <>

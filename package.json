@@ -1,0 +1,13 @@
+{
+  "name": "finsight-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FinSight monorepo containing frontend (Next.js) and backend (Express)",
+  "scripts": {
+    "build": "npm run build --prefix frontend",
+    "start": "npm run start --prefix frontend",
+    "frontend:dev": "npm run dev --prefix frontend",
+    "backend:dev": "npm run dev --prefix backend"
+  }
+}
+

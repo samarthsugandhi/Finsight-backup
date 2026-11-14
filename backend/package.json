@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:demo": "tsx prisma/seedDemoUsers.ts",
     "db:studio": "prisma studio",
     "portfolio:snapshot": "tsx scripts/snapshot-portfolio-values.ts"
   },

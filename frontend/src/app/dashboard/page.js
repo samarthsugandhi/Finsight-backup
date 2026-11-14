@@ -1028,7 +1028,10 @@ export default function DashboardPage() {
                   Latest recorded entries
                 </p>
               </div>
-              <Link href="/dashboard/transactions" className="text-xs text-horizon hover:underline font-semibold">
+              <Link
+                href={`/dashboard/transactions?month=${selectedMonth}&year=${selectedYear}&period=${periodMode}`}
+                className="text-xs text-horizon hover:underline font-semibold"
+              >
                 View All →
               </Link>
             </div>

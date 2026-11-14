@@ -299,6 +299,7 @@ function ActionCard({ action, onConfirm, onDismiss, confirming }) {
 
   let label = "";
   let sublabel = "";
+  let dateLabel = "";
   let Icon = Zap;
   let accentClass = "border-horizon/40 bg-horizon/10";
   let badgeClass = "bg-horizon text-[#0f1b33]";
@@ -307,6 +308,18 @@ function ActionCard({ action, onConfirm, onDismiss, confirming }) {
     const sign = payload.type === "INCOME" ? "+" : "−";
     label = `${sign}₹${Number(payload.amount).toLocaleString("en-IN")} · ${payload.category}`;
     sublabel = payload.description ? `"${payload.description}"` : payload.type;
+    if (payload.date) {
+      try {
+        const d = new Date(payload.date);
+        if (!isNaN(d.getTime())) {
+          dateLabel = d.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+        }
+      } catch {}
+    }
     Icon = payload.type === "INCOME" ? CheckCircle : Zap;
     accentClass =
       payload.type === "INCOME"
@@ -339,7 +352,11 @@ function ActionCard({ action, onConfirm, onDismiss, confirming }) {
             Proposed Action
           </p>
           <p className="text-xs font-semibold text-ink leading-snug">{label}</p>
-          {sublabel && <p className="text-[10px] text-ink-soft mt-0.5">{sublabel}</p>}
+          <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[11px] text-ink-soft">
+            {sublabel && <span>{sublabel}</span>}
+            {sublabel && dateLabel && <span>·</span>}
+            {dateLabel && <span className="font-semibold text-ink font-figure">📅 {dateLabel}</span>}
+          </div>
         </div>
       </div>
 

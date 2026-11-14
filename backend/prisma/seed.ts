@@ -7,6 +7,7 @@ import {
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { computeTransactionHash } from "../src/utils/categorizationRules";
+import { seedDemoUsers } from "./seedDemoUsers";
 
 const prisma = new PrismaClient();
 
@@ -741,6 +742,11 @@ async function main() {
   }
 
   console.log("✓ Market price cache created");
+
+  // ============================================================
+  // DEMO USERS (P1, P2, P3, P4)
+  // ============================================================
+  await seedDemoUsers();
 
   // ============================================================
   // SUMMARY

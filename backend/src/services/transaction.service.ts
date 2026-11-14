@@ -4,6 +4,7 @@ import { AppError } from "@/middlewares/error.middleware";
 import { CreateTransactionInput } from "@/validators/transaction.validator";
 import { computeTransactionHash } from "@/utils/categorizationRules";
 import { isInternalTransferTransaction } from "@/services/report.service";
+import { parseSmartDate } from "@/controllers/ai.controller";
 
 function buildDateRange(filters: { period?: string; month?: number; year?: number }) {
   const { period, month, year } = filters;
@@ -51,7 +52,7 @@ export const transactionService = {
   },
 
   async create(userId: number, input: CreateTransactionInput) {
-    const date = input.date ? new Date(input.date) : new Date();
+    const date = input.date ? parseSmartDate(input.date, input.description || "") : new Date();
     const hash = computeTransactionHash(
       userId,
       date,
@@ -296,7 +297,7 @@ export const transactionService = {
 
     const newAmount = input.amount !== undefined ? input.amount : tx.amount;
     const newType = input.type !== undefined ? input.type : tx.type;
-    const newDate = input.date ? new Date(input.date) : tx.date;
+    const newDate = input.date ? parseSmartDate(input.date, input.description || "") : tx.date;
     const newDesc = input.description !== undefined ? input.description : (tx.description || "");
 
     const newHash = computeTransactionHash(
@@ -314,7 +315,7 @@ export const transactionService = {
           amount: input.amount !== undefined ? input.amount : undefined,
           type: input.type !== undefined ? input.type : undefined,
           description: input.description !== undefined ? input.description : undefined,
-          date: input.date ? new Date(input.date) : undefined,
+          date: input.date ? parseSmartDate(input.date, input.description || "") : undefined,
           categoryId: input.categoryId !== undefined ? input.categoryId : undefined,
           sourceAccount: input.sourceAccount !== undefined ? input.sourceAccount : undefined,
           destinationAccount: input.destinationAccount !== undefined ? input.destinationAccount : undefined,

@@ -6,14 +6,103 @@ import { AppError } from "@/middlewares/error.middleware";
 import { transcribeAudioBuffer } from "@/services/whisper.service";
 import { detectAndCalculateMath } from "@/utils/financialMath";
 
+// ── Smart Date Parser for Action Payloads ─────────────────────────────────────
+
+export function parseSmartDate(rawDate?: string | null, fallbackText: string = ""): Date {
+  const textToScan = `${rawDate ? String(rawDate) : ""} ${fallbackText ? String(fallbackText) : ""}`.trim();
+
+  // 1. Direct standard parse if rawDate is provided
+  if (rawDate && typeof rawDate === "string") {
+    const cleanRaw = rawDate.replace(/(\d+)(st|nd|rd|th)/gi, "$1").trim();
+    const d = new Date(cleanRaw);
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 2000 && d.getFullYear() <= 2100) {
+      return d;
+    }
+  }
+
+  // 2. Regex for DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const dmyMatch = textToScan.match(/\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})\b/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    const d = new Date(year, month, day, 12, 0, 0);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // 3. Regex for YYYY-MM-DD
+  const ymdMatch = textToScan.match(/\b(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    const d = new Date(year, month, day, 12, 0, 0);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  const monthsMap: Record<string, number> = {
+    jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2,
+    apr: 3, april: 3, may: 4, jun: 5, june: 5, jul: 6, july: 6,
+    aug: 7, august: 7, sep: 8, september: 8, oct: 9, october: 9,
+    nov: 10, november: 10, dec: 11, december: 11,
+  };
+
+  // 4. Regex for "15 october 2026" or "15th Oct, 2026" or "date 15 october 2026"
+  const dayMonthMatch = textToScan.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+)(?:,?\s+(\d{4}))?\b/i);
+  if (dayMonthMatch) {
+    const day = parseInt(dayMonthMatch[1], 10);
+    const monStr = dayMonthMatch[2].toLowerCase();
+    const year = dayMonthMatch[3] ? parseInt(dayMonthMatch[3], 10) : new Date().getFullYear();
+    if (monthsMap[monStr] !== undefined) {
+      const d = new Date(year, monthsMap[monStr], day, 12, 0, 0);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+
+  // 5. Regex for "October 15, 2026" or "Oct 15th 2026"
+  const monthDayMatch = textToScan.match(/\b([a-zA-Z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?\b/i);
+  if (monthDayMatch) {
+    const monStr = monthDayMatch[1].toLowerCase();
+    const day = parseInt(monthDayMatch[2], 10);
+    const year = monthDayMatch[3] ? parseInt(monthDayMatch[3], 10) : new Date().getFullYear();
+    if (monthsMap[monStr] !== undefined) {
+      const d = new Date(year, monthsMap[monStr], day, 12, 0, 0);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+
+  // 6. Relative "yesterday"
+  if (/\byesterday\b/i.test(textToScan)) {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d;
+  }
+
+  return new Date();
+}
+
 // ── System prompt factory ─────────────────────────────────────────────────────
 
 function buildSystemPrompt(contextStr: string, mathCalculationBlock: string | null = null): string {
+  const now = new Date();
+  const todayFormatted = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const todayIso = now.toISOString();
+  const currentYear = now.getFullYear();
+
   const mathSection = mathCalculationBlock
     ? `\n## Verified Backend Calculations (Deterministic Financial Math Engine):\n${mathCalculationBlock}\n- MANDATORY: Always quote and rely on these exact figures above for any numerical, EMI, or affordability questions. Never recalculate or invent different numbers.\n`
     : "";
 
   return `You are FinAI, an intelligent, empathetic, beginner-friendly, and financially precise personal finance advisor built into FinSight.
+
+## Current System Date & Time Reference:
+- Today is ${todayFormatted} (ISO: ${todayIso}).
+- Current Year: ${currentYear}. When user specifies dates without a year (e.g. "15 October", "yesterday"), use current year ${currentYear}.
 
 ## Conversational Guidelines:
 - Handle simple conversational pleasantries (e.g. "Hi", "Hello", "Hey", "Good morning", "Thanks") warmly, briefly, and naturally (e.g., "Hello! How can I help you with your finances today?"). Never launch into unsolicited onboarding questions or financial reviews for a simple greeting.
@@ -43,10 +132,10 @@ ${contextStr}
 - Never expose another user's financial data.
 
 ## Action Protocol:
-If the user explicitly asks to add, record, or delete a transaction (e.g. "add ₹400 for groceries", "spent 250 on coffee yesterday", "delete transaction 42"), append a single fenced JSON block at the very end of your response:
+If the user explicitly asks to add, record, or delete a transaction (e.g. "add ₹400 for groceries", "spent 250 on coffee yesterday", "add expense of 6000 for food on date 15 october 2026", "delete transaction 42"), append a single fenced JSON block at the very end of your response:
 
 \`\`\`json
-{ "action": "CREATE_TRANSACTION", "payload": { "amount": 400, "category": "Food", "type": "EXPENSE", "description": "Groceries", "date": "2026-10-24T00:00:00.000Z" } }
+{ "action": "CREATE_TRANSACTION", "payload": { "amount": 6000, "category": "Food", "type": "EXPENSE", "description": "Food expense", "date": "2026-10-15T00:00:00.000Z" } }
 \`\`\`
 
 Action Block Rules:
@@ -55,7 +144,7 @@ Action Block Rules:
 - "type" must be "INCOME" or "EXPENSE".
 - "category" must match standard categories (e.g. Food, Transport, Shopping, Bills, Healthcare, Entertainment, Education, Salary, Investment, Other).
 - "amount" must be a positive number.
-- "date": If a specific date is mentioned (e.g. "yesterday", "on Oct 12"), convert to ISO 8601 string. If no date is specified, omit "date".
+- "date": MANDATORY ISO 8601 string (e.g. "YYYY-MM-DDTHH:mm:ss.sssZ"). If the user mentions any specific date, day, month, or relative time (e.g. "15 october 2026", "yesterday", "Oct 12"), convert that exact target date to ISO 8601. Only if the user completely omits any date mention should it default to today (${todayIso}).
 - Do NOT output action blocks unless the user unambiguously requested a transaction mutation.
 - The UI presents an interactive confirmation card before anything is saved.
 
@@ -220,14 +309,9 @@ export const aiController = {
           return res.status(400).json({ error: "Transaction type must be INCOME or EXPENSE." });
         }
 
-        // Validate or parse date safely
-        let txDate = new Date();
-        if (date) {
-          const parsed = new Date(date);
-          if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2000 && parsed.getFullYear() <= 2100) {
-            txDate = parsed;
-          }
-        }
+        // Validate or parse date safely using smart natural and ISO parser
+        const combinedContext = `${typeof description === "string" ? description : ""} ${typeof req.body.message === "string" ? req.body.message : ""}`;
+        const txDate = parseSmartDate(date, combinedContext);
 
         // Resolve or match category
         const catName = typeof category === "string" ? category.trim() : "";
@@ -274,9 +358,15 @@ export const aiController = {
           });
         });
 
+        const dateStr = txDate.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+
         return res.status(201).json({
           success: true,
-          message: `Created ${safeType.toLowerCase()} of ₹${numAmount.toLocaleString("en-IN")}`,
+          message: `Created ${safeType.toLowerCase()} of ₹${numAmount.toLocaleString("en-IN")} on ${dateStr}`,
           transaction: createdTx,
         });
       } else if (action === "DELETE_TRANSACTION") {
