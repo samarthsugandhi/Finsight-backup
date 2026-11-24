@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5002";
+const BACKEND_URL = (process.env.BACKEND_URL || "http://localhost:5002").replace(/\/+$/, "");
 
 const nextConfig = {
   // Turbopack root override — only for local dev; Vercel uses the standard webpack bundler.
