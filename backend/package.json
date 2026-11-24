@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate",
-    "start": "tsx src/server.ts",
+    "start": "npx tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/utils/__tests__/*.test.ts",
     "prisma:generate": "prisma generate",
@@ -51,8 +51,6 @@
     "@types/node": "^26.1.2",
     "@types/pdf-parse": "^1.1.5",
     "@types/pdfkit": "^0.17.7",
-    "prisma": "^6.19.3",
-    "tsx": "^4.23.2",
     "typescript": "^7.0.2"
   }
 }
