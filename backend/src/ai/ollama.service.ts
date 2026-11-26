@@ -28,6 +28,7 @@ export async function askOllama(prompt: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-Pinggy-No-Screen": "true",
     },
     body: JSON.stringify({
       model: MODEL,
@@ -54,6 +55,7 @@ export async function chatOllama(messages: { role: string; content: string }[], 
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-Pinggy-No-Screen": "true",
     },
     body: JSON.stringify({
       model: MODEL,
@@ -99,7 +101,10 @@ export async function streamChatOllama(
   try {
     const response = await fetch(OLLAMA_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Pinggy-No-Screen": "true",
+      },
       body: JSON.stringify({
         model: MODEL,
         messages,
